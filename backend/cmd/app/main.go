@@ -39,7 +39,10 @@ func main() {
 	handler := &handlers.Handler{}
 	router.RegisterHandlers(e, handler)
 
-	server := api.NewServer(e)
+	server := api.NewServer(e, &api.ServerOptions{
+		ReadTimeout:  cfg.Server.ReadTimeout,
+		WriteTimeout: cfg.Server.WriteTimeout,
+	})
 	if err := server.Start(fmt.Sprintf(":%d", cfg.Server.Port)); err != nil {
 		logging.Logger().Error(err.Error())
 		os.Exit(1)

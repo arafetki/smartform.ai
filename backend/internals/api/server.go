@@ -15,7 +15,16 @@ type Server struct {
 	router *echo.Echo
 }
 
-func NewServer(router *echo.Echo) *Server {
+type ServerOptions struct {
+	ReadTimeout  time.Duration
+	WriteTimeout time.Duration
+}
+
+func NewServer(router *echo.Echo, opts *ServerOptions) *Server {
+	if opts != nil {
+		router.Server.ReadTimeout = opts.ReadTimeout
+		router.Server.WriteTimeout = opts.WriteTimeout
+	}
 	return &Server{
 		router: router,
 	}

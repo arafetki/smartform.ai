@@ -36,7 +36,9 @@ func Init() {
 			Env:   env.GetString("APP_ENV", "development"),
 		},
 		Server: Server{
-			Port: env.GetInt("PORT", 8080),
+			Port:         env.GetInt("SERVER_PORT", 8080),
+			ReadTimeout:  env.GetDuration("SERVER_READ_TIMEOUT", 15*time.Second),
+			WriteTimeout: env.GetDuration("SERVER_WRITE_TIMEOUT", 45*time.Second),
 		},
 		Database: Database{
 			URL: env.GetString("DATABASE_URL", "postgres://postgres:postgres@localhost:5432/postgres?sslmode=disable"),
