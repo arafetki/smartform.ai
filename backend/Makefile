@@ -66,4 +66,16 @@ run-dev:
 .PHONY: migrations/new
 ## create a new database migration
 migrations/new:
-	@go run -tags 'postgresql' github.com/golang-migrate/migrate/v4/cmd/migrate@latest create -seq -ext=.sql -dir=./migrations ${name}
+	@go run -tags 'postgres' github.com/golang-migrate/migrate/v4/cmd/migrate@latest create -seq -ext=.sql -dir=./migrations ${name}
+
+
+.PHONY: migrations/up
+## apply all up database migrations
+migrations/up:
+	@go run -tags 'postgres' github.com/golang-migrate/migrate/v4/cmd/migrate@latest -path=./migrations -database="${DATABASE_URL}" up
+
+
+.PHONY: migrations/down
+## apply all down database migrations
+migrations/down:
+	@go run -tags 'postgres' github.com/golang-migrate/migrate/v4/cmd/migrate@latest -path=./migrations -database="${DATABASE_URL}" down
