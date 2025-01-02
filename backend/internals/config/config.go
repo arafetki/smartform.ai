@@ -8,8 +8,11 @@ import (
 )
 
 type Config struct {
-	Port  int
-	Debug bool
+	Port     int
+	Debug    bool
+	Database struct {
+		URL string
+	}
 }
 
 var cfg *Config
@@ -19,6 +22,9 @@ func Init() {
 	cfg = &Config{
 		Port:  env.GetInt("PORT", 8080),
 		Debug: env.GetBool("APP_DEBUG", true),
+		Database: struct{ URL string }{
+			URL: env.GetString("DATABASE_URL", "postgres://postgres:postgres@localhost:5432/postgres?sslmode=disable"),
+		},
 	}
 }
 
