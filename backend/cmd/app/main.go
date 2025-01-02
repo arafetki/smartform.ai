@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"os"
+	"runtime/debug"
 
 	"github.com/arafetki/smartform.ai/backend/internals/api"
 	"github.com/arafetki/smartform.ai/backend/internals/api/handlers"
@@ -23,6 +24,14 @@ func init() {
 }
 
 func main() {
+	if err := runApp(); err != nil {
+		trace := string(debug.Stack())
+		logging.Logger().Error(err.Error(), "trace", trace)
+		os.Exit(1)
+	}
+}
+
+func runApp() error {
 	cfg := config.Get()
 
 	e := echo.New()
@@ -30,8 +39,7 @@ func main() {
 
 	db, err := db.Init(cfg.Database.URL)
 	if err != nil {
-		logging.Logger().Error(err.Error())
-		os.Exit(1)
+		return err
 	}
 	defer db.Close()
 	logging.Logger().Info("Database connection established")
@@ -43,8 +51,6 @@ func main() {
 		ReadTimeout:  cfg.Server.ReadTimeout,
 		WriteTimeout: cfg.Server.WriteTimeout,
 	})
-	if err := server.Start(fmt.Sprintf(":%d", cfg.Server.Port)); err != nil {
-		logging.Logger().Error(err.Error())
-		os.Exit(1)
-	}
+
+	return server.Start(fmt.Sprintf(":%d", cfg.Server.Port))
 }
