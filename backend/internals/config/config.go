@@ -1,18 +1,29 @@
 package config
 
 import (
-	"log/slog"
-	"os"
+	"time"
 
 	"github.com/arafetki/smartform.ai/backend/internals/env"
 )
 
+type Application struct {
+	Env   string
+	Debug bool
+}
+type Server struct {
+	Port         int
+	ReadTimeout  time.Duration
+	WriteTimeout time.Duration
+}
+
+type Database struct {
+	URL string
+}
+
 type Config struct {
-	Port     int
-	Debug    bool
-	Database struct {
-		URL string
-	}
+	Application Application
+	Server      Server
+	Database    Database
 }
 
 var cfg *Config
@@ -20,9 +31,14 @@ var cfg *Config
 func Init() {
 
 	cfg = &Config{
-		Port:  env.GetInt("PORT", 8080),
-		Debug: env.GetBool("APP_DEBUG", true),
-		Database: struct{ URL string }{
+		Application: Application{
+			Debug: env.GetBool("APP_DEBUG", true),
+			Env:   env.GetString("APP_ENV", "development"),
+		},
+		Server: Server{
+			Port: env.GetInt("PORT", 8080),
+		},
+		Database: Database{
 			URL: env.GetString("DATABASE_URL", "postgres://postgres:postgres@localhost:5432/postgres?sslmode=disable"),
 		},
 	}
@@ -30,8 +46,7 @@ func Init() {
 
 func Get() Config {
 	if cfg == nil {
-		slog.Error("Configuration is not initialized.")
-		os.Exit(1)
+		panic("Configuration is not initialized.")
 	}
 	return *cfg
 }
