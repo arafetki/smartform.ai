@@ -3,6 +3,9 @@ COLOR_RESET   = \033[0m
 COLOR_INFO    = \033[32m
 COLOR_COMMENT = \033[33m
 
+main_package_path = ./cmd/app
+binary_name = app
+
 .PHONY: help
 ## Help
 help:
@@ -39,3 +42,28 @@ audit:
 ## run unit tests
 test:
 	go test -race -buildvcs -vet=off ./...
+
+
+.PHONY: build
+## build the application
+build:
+	go build -o=./build/${binary_name} ${main_package_path}
+
+.PHONY: run
+## run the  application
+run:
+	./build/${binary_name}
+
+.PHONY: run-dev
+## run the application with reloading on file changes
+run-dev:
+	go run github.com/air-verse/air@latest \
+		--build.cmd "make build" --build.bin "./build/${binary_name}" --build.delay "100" \
+		--build.exclude_dir "" \
+		--build.include_ext "go, sql" \
+		--misc.clean_on_exit "true"
+
+.PHONY: migrations/new
+## create a new database migration
+migrations/new:
+	@go run -tags 'postgresql' github.com/golang-migrate/migrate/v4/cmd/migrate@latest create -seq -ext=.sql -dir=./migrations ${name}
