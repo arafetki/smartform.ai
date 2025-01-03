@@ -20,10 +20,15 @@ type Database struct {
 	URL string
 }
 
+type JWT struct {
+	PublicKey string
+}
+
 type Config struct {
 	Application Application
 	Server      Server
 	Database    Database
+	JWT         JWT
 }
 
 var cfg *Config
@@ -42,6 +47,9 @@ func Init() {
 		},
 		Database: Database{
 			URL: env.GetString("DATABASE_URL", "postgres://postgres:postgres@localhost:5432/postgres?sslmode=disable"),
+		},
+		JWT: JWT{
+			PublicKey: env.GetString("JWT_PUBLIC_KEY", "ZvBbbm3FBFasSSEMnMqD7oVd2mBmHxXi9uhBZL+2mvI="),
 		},
 	}
 }
