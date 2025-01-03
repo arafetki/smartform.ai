@@ -18,4 +18,5 @@ overrides:
         rename:
             core_user: User
             core_form: Form
-            core_form_response: FormResponse
+            core_form_response: FormResponses
+            core_form_setting: FormSettings

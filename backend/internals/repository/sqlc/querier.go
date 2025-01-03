@@ -14,7 +14,9 @@ type Querier interface {
 	CountUsers(ctx context.Context) (int64, error)
 	CreateUser(ctx context.Context, arg CreateUserParams) error
 	DeleteUser(ctx context.Context, id pgtype.UUID) error
+	GetFormWithSettings(ctx context.Context, id pgtype.UUID) (GetFormWithSettingsRow, error)
 	GetUser(ctx context.Context, id pgtype.UUID) (User, error)
+	ListFormsForUser(ctx context.Context, userID pgtype.UUID) ([]ListFormsForUserRow, error)
 	ListUsers(ctx context.Context) ([]User, error)
 	UpdateUser(ctx context.Context, arg UpdateUserParams) error
 }

@@ -18,13 +18,22 @@ type Form struct {
 	Published   bool               `json:"published"`
 	CreatedAt   pgtype.Timestamptz `json:"created_at"`
 	UpdatedAt   pgtype.Timestamptz `json:"updated_at"`
+	SettingsID  pgtype.Int2        `json:"settings_id"`
 }
 
-type FormResponse struct {
+type FormResponses struct {
 	ID        pgtype.UUID        `json:"id"`
 	FormID    pgtype.UUID        `json:"form_id"`
 	Data      []byte             `json:"data"`
 	CreatedAt pgtype.Timestamptz `json:"created_at"`
+}
+
+type FormSettings struct {
+	ID              int16              `json:"id"`
+	BackgroundColor string             `json:"background_color"`
+	ForegroundColor string             `json:"foreground_color"`
+	PrimaryColor    string             `json:"primary_color"`
+	CreatedAt       pgtype.Timestamptz `json:"created_at"`
 }
 
 type User struct {
