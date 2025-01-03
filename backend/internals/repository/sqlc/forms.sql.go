@@ -11,6 +11,41 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
+const createForm = `-- name: CreateForm :exec
+INSERT INTO core.forms (user_id,settings_id,title,description,fields,published)
+VALUES ($1,$2,$3,$4,$5,$6)
+`
+
+type CreateFormParams struct {
+	UserID      pgtype.UUID `json:"user_id"`
+	SettingsID  pgtype.Int2 `json:"settings_id"`
+	Title       string      `json:"title"`
+	Description pgtype.Text `json:"description"`
+	Fields      []byte      `json:"fields"`
+	Published   bool        `json:"published"`
+}
+
+func (q *Queries) CreateForm(ctx context.Context, arg CreateFormParams) error {
+	_, err := q.db.Exec(ctx, createForm,
+		arg.UserID,
+		arg.SettingsID,
+		arg.Title,
+		arg.Description,
+		arg.Fields,
+		arg.Published,
+	)
+	return err
+}
+
+const deleteForm = `-- name: DeleteForm :exec
+DELETE FROM core.forms WHERE id=$1
+`
+
+func (q *Queries) DeleteForm(ctx context.Context, id pgtype.UUID) error {
+	_, err := q.db.Exec(ctx, deleteForm, id)
+	return err
+}
+
 const getFormWithSettings = `-- name: GetFormWithSettings :one
 SELECT
     f.id,
@@ -120,4 +155,39 @@ func (q *Queries) ListFormsForUser(ctx context.Context, userID pgtype.UUID) ([]L
 		return nil, err
 	}
 	return items, nil
+}
+
+const updateForm = `-- name: UpdateForm :exec
+UPDATE core.forms
+SET
+    settings_id = COALESCE($1, settings_id),
+    title = COALESCE($2, title),
+    description = COALESCE($3, description),
+    fields = COALESCE($4, fields),
+    view_count = COALESCE($5, view_count),
+    published = COALESCE($6, published)
+WHERE id = $7
+`
+
+type UpdateFormParams struct {
+	SettingsID  pgtype.Int2 `json:"settings_id"`
+	Title       pgtype.Text `json:"title"`
+	Description pgtype.Text `json:"description"`
+	Fields      []byte      `json:"fields"`
+	ViewCount   pgtype.Int8 `json:"view_count"`
+	Published   pgtype.Bool `json:"published"`
+	ID          pgtype.UUID `json:"id"`
+}
+
+func (q *Queries) UpdateForm(ctx context.Context, arg UpdateFormParams) error {
+	_, err := q.db.Exec(ctx, updateForm,
+		arg.SettingsID,
+		arg.Title,
+		arg.Description,
+		arg.Fields,
+		arg.ViewCount,
+		arg.Published,
+		arg.ID,
+	)
+	return err
 }

@@ -29,3 +29,21 @@ SELECT
 FROM core.forms
 WHERE user_id = $1
 ORDER BY created_at DESC;
+
+-- name: CreateForm :exec
+INSERT INTO core.forms (user_id,settings_id,title,description,fields,published)
+VALUES ($1,$2,$3,$4,$5,$6);
+
+-- name: UpdateForm :exec
+UPDATE core.forms
+SET
+    settings_id = COALESCE(sqlc.narg('settings_id'), settings_id),
+    title = COALESCE(sqlc.narg('title'), title),
+    description = COALESCE(sqlc.narg('description'), description),
+    fields = COALESCE(sqlc.narg('fields'), fields),
+    view_count = COALESCE(sqlc.narg('view_count'), view_count),
+    published = COALESCE(sqlc.narg('published'), published)
+WHERE id = sqlc.arg('id');
+
+-- name: DeleteForm :exec
+DELETE FROM core.forms WHERE id=$1;

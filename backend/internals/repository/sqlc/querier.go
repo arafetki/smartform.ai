@@ -12,12 +12,18 @@ import (
 
 type Querier interface {
 	CountUsers(ctx context.Context) (int64, error)
+	CreateForm(ctx context.Context, arg CreateFormParams) error
+	CreateResponsesForForm(ctx context.Context, arg CreateResponsesForFormParams) error
 	CreateUser(ctx context.Context, arg CreateUserParams) error
+	DeleteForm(ctx context.Context, id pgtype.UUID) error
 	DeleteUser(ctx context.Context, id pgtype.UUID) error
 	GetFormWithSettings(ctx context.Context, id pgtype.UUID) (GetFormWithSettingsRow, error)
 	GetUser(ctx context.Context, id pgtype.UUID) (User, error)
 	ListFormsForUser(ctx context.Context, userID pgtype.UUID) ([]ListFormsForUserRow, error)
+	ListResponsesForForm(ctx context.Context, formID pgtype.UUID) ([]FormResponses, error)
+	ListSettings(ctx context.Context) ([]FormSettings, error)
 	ListUsers(ctx context.Context) ([]User, error)
+	UpdateForm(ctx context.Context, arg UpdateFormParams) error
 	UpdateUser(ctx context.Context, arg UpdateUserParams) error
 }
 
