@@ -12,40 +12,40 @@ import (
 )
 
 type Form struct {
-	ID          uuid.UUID
-	UserID      uuid.UUID
-	Title       string
-	Description pgtype.Text
-	Fields      json.RawMessage
-	ViewCount   int64
-	Published   bool
-	CreatedAt   pgtype.Timestamptz
-	UpdatedAt   pgtype.Timestamptz
-	SettingsID  int16
+	ID          uuid.UUID          `json:"id"`
+	UserID      uuid.UUID          `json:"user_id"`
+	Title       string             `json:"title"`
+	Description pgtype.Text        `json:"description"`
+	Fields      json.RawMessage    `json:"fields"`
+	ViewCount   int64              `json:"view_count"`
+	Published   bool               `json:"published"`
+	CreatedAt   pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt   pgtype.Timestamptz `json:"updated_at"`
+	SettingsID  int16              `json:"settings_id"`
 }
 
 type FormResponses struct {
-	ID        uuid.UUID
-	FormID    uuid.UUID
-	Data      json.RawMessage
-	CreatedAt pgtype.Timestamptz
+	ID        uuid.UUID          `json:"id"`
+	FormID    uuid.UUID          `json:"form_id"`
+	Data      json.RawMessage    `json:"data"`
+	CreatedAt pgtype.Timestamptz `json:"created_at"`
 }
 
 type FormSettings struct {
-	ID              int16
-	BackgroundColor string
-	ForegroundColor string
-	PrimaryColor    string
-	CreatedAt       pgtype.Timestamptz
+	ID              int16              `json:"id"`
+	BackgroundColor string             `json:"background_color"`
+	ForegroundColor string             `json:"foreground_color"`
+	PrimaryColor    string             `json:"primary_color"`
+	CreatedAt       pgtype.Timestamptz `json:"created_at"`
 }
 
 type User struct {
-	ID          uuid.UUID
-	Email       string
-	Name        string
-	PhoneNumber string
-	IsVerified  bool
-	AvatarUrl   pgtype.Text
-	CreatedAt   pgtype.Timestamptz
-	UpdatedAt   pgtype.Timestamptz
+	ID          uuid.UUID          `json:"id"`
+	Email       string             `json:"email"`
+	Name        string             `json:"name"`
+	PhoneNumber string             `json:"phone_number"`
+	IsVerified  bool               `json:"is_verified"`
+	AvatarUrl   pgtype.Text        `json:"avatar_url"`
+	CreatedAt   pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt   pgtype.Timestamptz `json:"updated_at"`
 }

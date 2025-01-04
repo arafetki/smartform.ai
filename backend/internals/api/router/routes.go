@@ -31,6 +31,7 @@ func RegisterHandlers(r *echo.Echo, h *handlers.Handler, m *middlewares.Middlewa
 		v1.POST("/forms", h.CreateForm, m.RequireAuthenticatedUser)
 		v1.GET("/forms", h.FetchFormsForUser, m.RequireAuthenticatedUser)
 		v1.DELETE("/forms", h.DeleteFormsInBatch, m.RequireAuthenticatedUser)
+		v1.GET("/forms/settings", h.FetchAllSettings)
 		v1.GET("/forms/:id", h.FetchFormData)
 	}
 }

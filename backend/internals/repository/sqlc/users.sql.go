@@ -28,13 +28,13 @@ INSERT INTO core.users (id,email,name,phone_number,is_verified,created_at,update
 `
 
 type CreateUserParams struct {
-	ID          uuid.UUID
-	Email       string
-	Name        string
-	PhoneNumber string
-	IsVerified  bool
-	CreatedAt   pgtype.Timestamptz
-	UpdatedAt   pgtype.Timestamptz
+	ID          uuid.UUID          `json:"id"`
+	Email       string             `json:"email"`
+	Name        string             `json:"name"`
+	PhoneNumber string             `json:"phone_number"`
+	IsVerified  bool               `json:"is_verified"`
+	CreatedAt   pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt   pgtype.Timestamptz `json:"updated_at"`
 }
 
 func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) error {
@@ -129,12 +129,12 @@ WHERE id = $6
 `
 
 type UpdateUserParams struct {
-	Email       pgtype.Text
-	Name        pgtype.Text
-	PhoneNumber pgtype.Text
-	IsVerified  pgtype.Bool
-	AvatarUrl   pgtype.Text
-	ID          uuid.UUID
+	Email       pgtype.Text `json:"email"`
+	Name        pgtype.Text `json:"name"`
+	PhoneNumber pgtype.Text `json:"phone_number"`
+	IsVerified  pgtype.Bool `json:"is_verified"`
+	AvatarUrl   pgtype.Text `json:"avatar_url"`
+	ID          uuid.UUID   `json:"id"`
 }
 
 func (q *Queries) UpdateUser(ctx context.Context, arg UpdateUserParams) (int64, error) {

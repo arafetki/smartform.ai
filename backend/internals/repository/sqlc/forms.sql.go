@@ -19,12 +19,12 @@ VALUES ($1,$2,$3,$4,$5,$6)
 `
 
 type CreateFormParams struct {
-	UserID      uuid.UUID
-	SettingsID  int16
-	Title       string
-	Description pgtype.Text
-	Fields      json.RawMessage
-	Published   bool
+	UserID      uuid.UUID       `json:"user_id"`
+	SettingsID  int16           `json:"settings_id"`
+	Title       string          `json:"title"`
+	Description pgtype.Text     `json:"description"`
+	Fields      json.RawMessage `json:"fields"`
+	Published   bool            `json:"published"`
 }
 
 func (q *Queries) CreateForm(ctx context.Context, arg CreateFormParams) error {
@@ -44,8 +44,8 @@ DELETE FROM core.forms WHERE id=ANY($1) AND user_id=$2
 `
 
 type DeleteFormsByOwnerParams struct {
-	Ids    []uuid.UUID
-	UserID uuid.UUID
+	Ids    []uuid.UUID `json:"ids"`
+	UserID uuid.UUID   `json:"user_id"`
 }
 
 func (q *Queries) DeleteFormsByOwner(ctx context.Context, arg DeleteFormsByOwnerParams) (int64, error) {
@@ -75,16 +75,16 @@ WHERE f.id = $1
 `
 
 type GetFormWithSettingsRow struct {
-	ID           uuid.UUID
-	UserID       uuid.UUID
-	Title        string
-	Description  pgtype.Text
-	Fields       json.RawMessage
-	ViewCount    int64
-	Published    bool
-	CreatedAt    pgtype.Timestamptz
-	UpdatedAt    pgtype.Timestamptz
-	FormSettings FormSettings
+	ID           uuid.UUID          `json:"id"`
+	UserID       uuid.UUID          `json:"user_id"`
+	Title        string             `json:"title"`
+	Description  pgtype.Text        `json:"description"`
+	Fields       json.RawMessage    `json:"fields"`
+	ViewCount    int64              `json:"view_count"`
+	Published    bool               `json:"published"`
+	CreatedAt    pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt    pgtype.Timestamptz `json:"updated_at"`
+	FormSettings FormSettings       `json:"form_settings"`
 }
 
 func (q *Queries) GetFormWithSettings(ctx context.Context, id uuid.UUID) (GetFormWithSettingsRow, error) {
@@ -126,15 +126,15 @@ ORDER BY created_at DESC
 `
 
 type ListFormsForUserRow struct {
-	ID          uuid.UUID
-	UserID      uuid.UUID
-	SettingsID  int16
-	Title       string
-	Description pgtype.Text
-	ViewCount   int64
-	Published   bool
-	CreatedAt   pgtype.Timestamptz
-	UpdatedAt   pgtype.Timestamptz
+	ID          uuid.UUID          `json:"id"`
+	UserID      uuid.UUID          `json:"user_id"`
+	SettingsID  int16              `json:"settings_id"`
+	Title       string             `json:"title"`
+	Description pgtype.Text        `json:"description"`
+	ViewCount   int64              `json:"view_count"`
+	Published   bool               `json:"published"`
+	CreatedAt   pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt   pgtype.Timestamptz `json:"updated_at"`
 }
 
 func (q *Queries) ListFormsForUser(ctx context.Context, userID uuid.UUID) ([]ListFormsForUserRow, error) {
@@ -180,14 +180,14 @@ WHERE id = $7 AND user_id=$8
 `
 
 type UpdateFormParams struct {
-	SettingsID  pgtype.Int2
-	Title       pgtype.Text
-	Description pgtype.Text
-	Fields      []byte
-	ViewCount   pgtype.Int8
-	Published   pgtype.Bool
-	ID          uuid.UUID
-	UserID      uuid.UUID
+	SettingsID  pgtype.Int2 `json:"settings_id"`
+	Title       pgtype.Text `json:"title"`
+	Description pgtype.Text `json:"description"`
+	Fields      []byte      `json:"fields"`
+	ViewCount   pgtype.Int8 `json:"view_count"`
+	Published   pgtype.Bool `json:"published"`
+	ID          uuid.UUID   `json:"id"`
+	UserID      uuid.UUID   `json:"user_id"`
 }
 
 func (q *Queries) UpdateForm(ctx context.Context, arg UpdateFormParams) (int64, error) {

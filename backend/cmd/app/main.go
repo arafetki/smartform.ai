@@ -51,10 +51,12 @@ func startApp() error {
 
 	us := services.NewUsersService(queries)
 	fs := services.NewFormsService(queries)
+	fss := services.NewFormSettingsService(queries)
 
 	handler := &handlers.Handler{
-		UsersService: us,
-		FormsService: fs,
+		UsersService:        us,
+		FormsService:        fs,
+		FormSettingsService: fss,
 	}
 
 	middleware := &middlewares.Middleware{

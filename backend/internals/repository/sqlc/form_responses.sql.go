@@ -18,8 +18,8 @@ VALUES ($1,$2)
 `
 
 type CreateResponsesForFormParams struct {
-	FormID uuid.UUID
-	Data   json.RawMessage
+	FormID uuid.UUID       `json:"form_id"`
+	Data   json.RawMessage `json:"data"`
 }
 
 func (q *Queries) CreateResponsesForForm(ctx context.Context, arg CreateResponsesForFormParams) error {

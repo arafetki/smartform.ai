@@ -5,6 +5,7 @@ import (
 )
 
 type Handler struct {
-	UsersService *services.UsersService
-	FormsService *services.FormsService
+	UsersService        *services.UsersService
+	FormsService        *services.FormsService
+	FormSettingsService *services.FormSettingsService
 }
