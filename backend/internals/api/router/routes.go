@@ -11,7 +11,7 @@ import (
 	"github.com/labstack/echo/v4/middleware"
 )
 
-func RegisterHandlers(e *echo.Echo, handler *handlers.Handler) {
+func RegisterHandlers(e *echo.Echo, h *handlers.Handler, m *middlewares.Middleware) {
 
 	e.HTTPErrorHandler = customHttpErrorHandler
 
@@ -25,20 +25,20 @@ func RegisterHandlers(e *echo.Echo, handler *handlers.Handler) {
 		Timeout: 30 * time.Second,
 	}))
 
-	e.GET("/health", handler.HealthCheck)
+	e.GET("/health", h.HealthCheck)
 
 	v1 := e.Group("/v1")
 	{
-		v1.Use(middlewares.Authenticate)
+		v1.Use(m.Authenticate)
 
-		v1.GET("/users", handler.ListAllUsers)
-		v1.GET("/users/:id", handler.FetchUser, middlewares.RequireAuthenticatedUser)
-		v1.GET("/users/:userId/forms", handler.ListFormsForUser, middlewares.RequireAuthenticatedUser)
-		v1.POST("/users/webhook", handler.UserWebhook)
+		v1.GET("/users", h.ListAllUsers)
+		v1.GET("/users/:id", h.FetchUser, m.RequireAuthenticatedUser)
+		v1.GET("/users/:userId/forms", h.ListFormsForUser, m.RequireAuthenticatedUser)
+		v1.POST("/users/webhook", h.UserWebhook)
 
-		v1.POST("/forms", handler.CreateForm, middlewares.RequireAuthenticatedUser)
-		v1.GET("/forms/:id", handler.FetchFormData)
-		v1.DELETE("/forms", handler.DeleteForms, middlewares.RequireAuthenticatedUser)
+		v1.POST("/forms", h.CreateForm, m.RequireAuthenticatedUser)
+		v1.GET("/forms/:id", h.FetchFormData)
+		v1.DELETE("/forms", h.DeleteForms, m.RequireAuthenticatedUser)
 	}
 }
 

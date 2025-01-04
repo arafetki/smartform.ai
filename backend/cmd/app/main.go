@@ -7,6 +7,7 @@ import (
 
 	"github.com/arafetki/smartform.ai/backend/internals/api"
 	"github.com/arafetki/smartform.ai/backend/internals/api/handlers"
+	"github.com/arafetki/smartform.ai/backend/internals/api/middlewares"
 	"github.com/arafetki/smartform.ai/backend/internals/api/router"
 	"github.com/arafetki/smartform.ai/backend/internals/config"
 	"github.com/arafetki/smartform.ai/backend/internals/db"
@@ -48,11 +49,18 @@ func runApp() error {
 
 	queries := sqlc.New(db)
 
+	us := services.NewUsersService(queries)
+	fs := services.NewFormsService(queries)
+
 	handler := &handlers.Handler{
-		UsersService: services.NewUsersService(queries),
-		FormsService: services.NewFormsService(queries),
+		UsersService: us,
+		FormsService: fs,
 	}
-	router.RegisterHandlers(e, handler)
+
+	middleware := &middlewares.Middleware{
+		UsersService: us,
+	}
+	router.RegisterHandlers(e, handler, middleware)
 
 	server := api.NewServer(e, &api.ServerOptions{
 		ReadTimeout:  cfg.Server.ReadTimeout,

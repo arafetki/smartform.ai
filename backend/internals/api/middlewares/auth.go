@@ -9,7 +9,7 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
-func Authenticate(next echo.HandlerFunc) echo.HandlerFunc {
+func (m *Middleware) Authenticate(next echo.HandlerFunc) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		c.Response().Header().Add("Vary", "Authorization")
 
@@ -31,7 +31,7 @@ func Authenticate(next echo.HandlerFunc) echo.HandlerFunc {
 	}
 }
 
-func RequireAuthenticatedUser(next echo.HandlerFunc) echo.HandlerFunc {
+func (m *Middleware) RequireAuthenticatedUser(next echo.HandlerFunc) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		user := utils.ContextGetUser(c.Request())
 		if user.IsAnonymous() {
