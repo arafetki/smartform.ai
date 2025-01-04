@@ -1,6 +1,7 @@
 package config
 
 import (
+	"os"
 	"time"
 
 	"github.com/arafetki/smartform.ai/backend/internals/env"
@@ -20,15 +21,16 @@ type Database struct {
 	URL string
 }
 
-type JWT struct {
-	PublicKey string
+type Auth0 struct {
+	Domain string
+	ID     string
 }
 
 type Config struct {
 	Application Application
 	Server      Server
 	Database    Database
-	JWT         JWT
+	Auth0       Auth0
 }
 
 var cfg *Config
@@ -48,8 +50,9 @@ func Init() {
 		Database: Database{
 			URL: env.GetString("DATABASE_URL", "postgres://postgres:postgres@localhost:5432/postgres?sslmode=disable"),
 		},
-		JWT: JWT{
-			PublicKey: env.GetString("JWT_PUBLIC_KEY", "ZvBbbm3FBFasSSEMnMqD7oVd2mBmHxXi9uhBZL+2mvI="),
+		Auth0: Auth0{
+			Domain: os.Getenv("AUTH0_DOMAIN"),
+			ID:     os.Getenv("AUTH0_AUDIENCE"),
 		},
 	}
 }

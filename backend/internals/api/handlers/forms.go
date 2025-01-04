@@ -5,6 +5,7 @@ import (
 	"errors"
 	"net/http"
 
+	"github.com/arafetki/smartform.ai/backend/internals/logging"
 	"github.com/arafetki/smartform.ai/backend/internals/repository/sqlc"
 	"github.com/arafetki/smartform.ai/backend/internals/services"
 	"github.com/arafetki/smartform.ai/backend/internals/utils"
@@ -23,11 +24,13 @@ func (h *Handler) CreateForm(c echo.Context) error {
 	}
 
 	if err := c.Bind(&input); err != nil {
-		return h.badRequestErrorResponse(c, err)
+		logging.Logger().Error(err.Error())
+		return echo.NewHTTPError(http.StatusBadRequest)
 	}
 
 	if err := c.Validate(input); err != nil {
-		return h.badRequestErrorResponse(c, err)
+		logging.Logger().Error(err.Error())
+		return echo.NewHTTPError(http.StatusUnprocessableEntity)
 	}
 
 	authenticatedUser := utils.ContextGetUser(c.Request())
@@ -43,7 +46,8 @@ func (h *Handler) CreateForm(c echo.Context) error {
 
 	err := h.FormsService.CreateForm(params)
 	if err != nil {
-		return h.internalServerErrorResponse(c, err)
+		logging.Logger().Error(err.Error())
+		return echo.NewHTTPError(http.StatusInternalServerError)
 	}
 	return c.NoContent(http.StatusCreated)
 }
@@ -53,25 +57,41 @@ func (h *Handler) FetchFormData(c echo.Context) error {
 		ID uuid.UUID `param:"id"`
 	}
 	if err := c.Bind(&input); err != nil {
-		return h.badRequestErrorResponse(c, err)
+		logging.Logger().Error(err.Error())
+		return echo.NewHTTPError(http.StatusBadRequest)
 	}
 	data, err := h.FormsService.GetFormWithSettings(input.ID)
 	if err != nil {
 		if errors.Is(err, services.ErrFormNotFound) {
-			return h.notFoundErrorResponse()
+			return echo.NewHTTPError(http.StatusNotFound)
 		}
-		return h.internalServerErrorResponse(c, err)
+		logging.Logger().Error(err.Error())
+		return echo.NewHTTPError(http.StatusInternalServerError)
 	}
 
 	return c.JSON(http.StatusOK, echo.Map{"data": data})
 }
 
-func (h *Handler) DeleteForms(c echo.Context) error {
+func (h *Handler) FetchFormsForUser(c echo.Context) error {
+
+	authenticatedUser := utils.ContextGetUser(c.Request())
+
+	forms, err := h.FormsService.ListFormsForUser(authenticatedUser.ID)
+	if err != nil {
+		logging.Logger().Error(err.Error())
+		return echo.NewHTTPError(http.StatusInternalServerError)
+	}
+
+	return c.JSON(http.StatusOK, echo.Map{"data": forms})
+}
+
+func (h *Handler) DeleteFormsInBatch(c echo.Context) error {
 	var input struct {
 		Ids []uuid.UUID `json:"ids"`
 	}
 	if err := c.Bind(&input); err != nil {
-		return h.badRequestErrorResponse(c, err)
+		logging.Logger().Error(err.Error())
+		return echo.NewHTTPError(http.StatusBadRequest)
 	}
 
 	authenticatedUser := utils.ContextGetUser(c.Request())
@@ -80,9 +100,10 @@ func (h *Handler) DeleteForms(c echo.Context) error {
 	if err != nil {
 		switch {
 		case errors.Is(err, services.ErrNoFormsDeleted):
-			return h.notFoundErrorResponse()
+			return echo.NewHTTPError(http.StatusNotFound)
 		default:
-			return h.internalServerErrorResponse(c, err)
+			logging.Logger().Error(err.Error())
+			return echo.NewHTTPError(http.StatusInternalServerError)
 		}
 	}
 	return c.NoContent(http.StatusNoContent)
