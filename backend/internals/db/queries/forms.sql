@@ -34,7 +34,7 @@ ORDER BY created_at DESC;
 INSERT INTO core.forms (user_id,settings_id,title,description,fields,published)
 VALUES ($1,$2,$3,$4,$5,$6);
 
--- name: UpdateForm :exec
+-- name: UpdateForm :execrows
 UPDATE core.forms
 SET
     settings_id = COALESCE(sqlc.narg('settings_id'), settings_id),
@@ -45,5 +45,5 @@ SET
     published = COALESCE(sqlc.narg('published'), published)
 WHERE id = sqlc.arg('id');
 
--- name: DeleteForm :exec
-DELETE FROM core.forms WHERE id=$1;
+-- name: DeleteFormsByOwner :execrows
+DELETE FROM core.forms WHERE id=ANY($1) AND user_id=$2;

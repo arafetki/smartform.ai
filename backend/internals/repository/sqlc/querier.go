@@ -7,7 +7,7 @@ package sqlc
 import (
 	"context"
 
-	"github.com/jackc/pgx/v5/pgtype"
+	"github.com/google/uuid"
 )
 
 type Querier interface {
@@ -15,16 +15,16 @@ type Querier interface {
 	CreateForm(ctx context.Context, arg CreateFormParams) error
 	CreateResponsesForForm(ctx context.Context, arg CreateResponsesForFormParams) error
 	CreateUser(ctx context.Context, arg CreateUserParams) error
-	DeleteForm(ctx context.Context, id pgtype.UUID) error
-	DeleteUser(ctx context.Context, id pgtype.UUID) error
-	GetFormWithSettings(ctx context.Context, id pgtype.UUID) (GetFormWithSettingsRow, error)
-	GetUser(ctx context.Context, id pgtype.UUID) (User, error)
-	ListFormsForUser(ctx context.Context, userID pgtype.UUID) ([]ListFormsForUserRow, error)
-	ListResponsesForForm(ctx context.Context, formID pgtype.UUID) ([]FormResponses, error)
+	DeleteFormsByOwner(ctx context.Context, arg DeleteFormsByOwnerParams) (int64, error)
+	DeleteUser(ctx context.Context, id uuid.UUID) (int64, error)
+	GetFormWithSettings(ctx context.Context, id uuid.UUID) (GetFormWithSettingsRow, error)
+	GetUser(ctx context.Context, id uuid.UUID) (User, error)
+	ListFormsForUser(ctx context.Context, userID uuid.UUID) ([]ListFormsForUserRow, error)
+	ListResponsesForForm(ctx context.Context, formID uuid.UUID) ([]FormResponses, error)
 	ListSettings(ctx context.Context) ([]FormSettings, error)
 	ListUsers(ctx context.Context) ([]User, error)
-	UpdateForm(ctx context.Context, arg UpdateFormParams) error
-	UpdateUser(ctx context.Context, arg UpdateUserParams) error
+	UpdateForm(ctx context.Context, arg UpdateFormParams) (int64, error)
+	UpdateUser(ctx context.Context, arg UpdateUserParams) (int64, error)
 }
 
 var _ Querier = (*Queries)(nil)

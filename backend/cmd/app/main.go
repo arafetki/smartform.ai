@@ -11,6 +11,8 @@ import (
 	"github.com/arafetki/smartform.ai/backend/internals/config"
 	"github.com/arafetki/smartform.ai/backend/internals/db"
 	"github.com/arafetki/smartform.ai/backend/internals/logging"
+	"github.com/arafetki/smartform.ai/backend/internals/repository/sqlc"
+	"github.com/arafetki/smartform.ai/backend/internals/services"
 	"github.com/arafetki/smartform.ai/backend/internals/validator"
 	"github.com/labstack/echo/v4"
 )
@@ -44,7 +46,12 @@ func runApp() error {
 	defer db.Close()
 	logging.Logger().Info("Database connection established")
 
-	handler := &handlers.Handler{}
+	queries := sqlc.New(db)
+
+	handler := &handlers.Handler{
+		UsersService: services.NewUsersService(queries),
+		FormsService: services.NewFormsService(queries),
+	}
 	router.RegisterHandlers(e, handler)
 
 	server := api.NewServer(e, &api.ServerOptions{

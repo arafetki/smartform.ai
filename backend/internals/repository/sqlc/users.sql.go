@@ -8,6 +8,7 @@ package sqlc
 import (
 	"context"
 
+	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
@@ -27,13 +28,13 @@ INSERT INTO core.users (id,email,name,phone_number,is_verified,created_at,update
 `
 
 type CreateUserParams struct {
-	ID          pgtype.UUID        `json:"id"`
-	Email       string             `json:"email"`
-	Name        string             `json:"name"`
-	PhoneNumber string             `json:"phone_number"`
-	IsVerified  bool               `json:"is_verified"`
-	CreatedAt   pgtype.Timestamptz `json:"created_at"`
-	UpdatedAt   pgtype.Timestamptz `json:"updated_at"`
+	ID          uuid.UUID
+	Email       string
+	Name        string
+	PhoneNumber string
+	IsVerified  bool
+	CreatedAt   pgtype.Timestamptz
+	UpdatedAt   pgtype.Timestamptz
 }
 
 func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) error {
@@ -49,13 +50,16 @@ func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) error {
 	return err
 }
 
-const deleteUser = `-- name: DeleteUser :exec
+const deleteUser = `-- name: DeleteUser :execrows
 DELETE FROM core.users WHERE id = $1
 `
 
-func (q *Queries) DeleteUser(ctx context.Context, id pgtype.UUID) error {
-	_, err := q.db.Exec(ctx, deleteUser, id)
-	return err
+func (q *Queries) DeleteUser(ctx context.Context, id uuid.UUID) (int64, error) {
+	result, err := q.db.Exec(ctx, deleteUser, id)
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected(), nil
 }
 
 const getUser = `-- name: GetUser :one
@@ -63,7 +67,7 @@ SELECT id, email, name, phone_number, is_verified, avatar_url, created_at, updat
 WHERE id = $1
 `
 
-func (q *Queries) GetUser(ctx context.Context, id pgtype.UUID) (User, error) {
+func (q *Queries) GetUser(ctx context.Context, id uuid.UUID) (User, error) {
 	row := q.db.QueryRow(ctx, getUser, id)
 	var i User
 	err := row.Scan(
@@ -113,7 +117,7 @@ func (q *Queries) ListUsers(ctx context.Context) ([]User, error) {
 	return items, nil
 }
 
-const updateUser = `-- name: UpdateUser :exec
+const updateUser = `-- name: UpdateUser :execrows
 UPDATE core.users
 SET
     email = COALESCE($1, email),
@@ -125,16 +129,16 @@ WHERE id = $6
 `
 
 type UpdateUserParams struct {
-	Email       pgtype.Text `json:"email"`
-	Name        pgtype.Text `json:"name"`
-	PhoneNumber pgtype.Text `json:"phone_number"`
-	IsVerified  pgtype.Bool `json:"is_verified"`
-	AvatarUrl   pgtype.Text `json:"avatar_url"`
-	ID          pgtype.UUID `json:"id"`
+	Email       pgtype.Text
+	Name        pgtype.Text
+	PhoneNumber pgtype.Text
+	IsVerified  pgtype.Bool
+	AvatarUrl   pgtype.Text
+	ID          uuid.UUID
 }
 
-func (q *Queries) UpdateUser(ctx context.Context, arg UpdateUserParams) error {
-	_, err := q.db.Exec(ctx, updateUser,
+func (q *Queries) UpdateUser(ctx context.Context, arg UpdateUserParams) (int64, error) {
+	result, err := q.db.Exec(ctx, updateUser,
 		arg.Email,
 		arg.Name,
 		arg.PhoneNumber,
@@ -142,5 +146,8 @@ func (q *Queries) UpdateUser(ctx context.Context, arg UpdateUserParams) error {
 		arg.AvatarUrl,
 		arg.ID,
 	)
-	return err
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected(), nil
 }

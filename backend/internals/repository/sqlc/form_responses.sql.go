@@ -7,8 +7,9 @@ package sqlc
 
 import (
 	"context"
+	"encoding/json"
 
-	"github.com/jackc/pgx/v5/pgtype"
+	"github.com/google/uuid"
 )
 
 const createResponsesForForm = `-- name: CreateResponsesForForm :exec
@@ -17,8 +18,8 @@ VALUES ($1,$2)
 `
 
 type CreateResponsesForFormParams struct {
-	FormID pgtype.UUID `json:"form_id"`
-	Data   []byte      `json:"data"`
+	FormID uuid.UUID
+	Data   json.RawMessage
 }
 
 func (q *Queries) CreateResponsesForForm(ctx context.Context, arg CreateResponsesForFormParams) error {
@@ -33,7 +34,7 @@ WHERE form_id = $1
 ORDER BY created_at DESC
 `
 
-func (q *Queries) ListResponsesForForm(ctx context.Context, formID pgtype.UUID) ([]FormResponses, error) {
+func (q *Queries) ListResponsesForForm(ctx context.Context, formID uuid.UUID) ([]FormResponses, error) {
 	rows, err := q.db.Query(ctx, listResponsesForForm, formID)
 	if err != nil {
 		return nil, err
