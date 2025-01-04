@@ -46,4 +46,4 @@ SET
 WHERE id = sqlc.arg('id');
 
 -- name: DeleteFormsByOwner :execrows
-DELETE FROM core.forms WHERE id=ANY($1) AND user_id=$2;
+DELETE FROM core.forms WHERE id=ANY(sqlc.arg('ids')) AND user_id=$2;

@@ -69,7 +69,7 @@ func (h *Handler) FetchFormData(c echo.Context) error {
 
 func (h *Handler) DeleteForms(c echo.Context) error {
 	var input struct {
-		IDS []uuid.UUID `json:"ids"`
+		Ids []uuid.UUID `json:"ids"`
 	}
 	if err := c.Bind(&input); err != nil {
 		logging.Logger().Error(err.Error())
@@ -78,7 +78,7 @@ func (h *Handler) DeleteForms(c echo.Context) error {
 
 	authenticatedUser := utils.ContextGetUser(c.Request())
 
-	err := h.FormsService.DeleteForms(sqlc.DeleteFormsByOwnerParams{ID: input.IDS, UserID: authenticatedUser.ID})
+	err := h.FormsService.DeleteForms(sqlc.DeleteFormsByOwnerParams{Ids: input.Ids, UserID: authenticatedUser.ID})
 	if err != nil {
 		switch {
 		case errors.Is(err, services.ErrNoFormsDeleted):

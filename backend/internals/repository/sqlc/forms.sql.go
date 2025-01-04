@@ -44,12 +44,12 @@ DELETE FROM core.forms WHERE id=ANY($1) AND user_id=$2
 `
 
 type DeleteFormsByOwnerParams struct {
-	ID     []uuid.UUID
+	Ids    []uuid.UUID
 	UserID uuid.UUID
 }
 
 func (q *Queries) DeleteFormsByOwner(ctx context.Context, arg DeleteFormsByOwnerParams) (int64, error) {
-	result, err := q.db.Exec(ctx, deleteFormsByOwner, arg.ID, arg.UserID)
+	result, err := q.db.Exec(ctx, deleteFormsByOwner, arg.Ids, arg.UserID)
 	if err != nil {
 		return 0, err
 	}
