@@ -5,7 +5,6 @@ import (
 	"errors"
 	"net/http"
 
-	"github.com/arafetki/smartform.ai/backend/internals/logging"
 	"github.com/arafetki/smartform.ai/backend/internals/repository/sqlc"
 	"github.com/arafetki/smartform.ai/backend/internals/services"
 	"github.com/arafetki/smartform.ai/backend/internals/utils"
@@ -16,16 +15,19 @@ import (
 
 func (h *Handler) CreateForm(c echo.Context) error {
 	var input struct {
-		SettingsID  pgtype.Int2     `json:"settings_id"`
-		Title       string          `json:"title"`
+		SettingsID  int16           `json:"settings_id" validate:"required"`
+		Title       string          `json:"title" validate:"required"`
 		Description pgtype.Text     `json:"description"`
-		Fields      json.RawMessage `json:"fields"`
+		Fields      json.RawMessage `json:"fields" validate:"required"`
 		Published   bool            `json:"published"`
 	}
 
 	if err := c.Bind(&input); err != nil {
-		logging.Logger().Error(err.Error())
-		return echo.NewHTTPError(http.StatusBadRequest, "The request could not be understood by the server due to malformed syntax or incorrect parameter type")
+		return h.badRequestErrorResponse(c, err)
+	}
+
+	if err := c.Validate(input); err != nil {
+		return h.badRequestErrorResponse(c, err)
 	}
 
 	authenticatedUser := utils.ContextGetUser(c.Request())
@@ -41,8 +43,7 @@ func (h *Handler) CreateForm(c echo.Context) error {
 
 	err := h.FormsService.CreateForm(params)
 	if err != nil {
-		logging.Logger().Error(err.Error())
-		return echo.NewHTTPError(http.StatusInternalServerError, "the server encountered a problem and could not process your request.")
+		return h.internalServerErrorResponse(c, err)
 	}
 	return c.NoContent(http.StatusCreated)
 }
@@ -52,16 +53,14 @@ func (h *Handler) FetchFormData(c echo.Context) error {
 		ID uuid.UUID `param:"id"`
 	}
 	if err := c.Bind(&input); err != nil {
-		logging.Logger().Error(err.Error())
-		return echo.NewHTTPError(http.StatusBadRequest, "The request could not be understood by the server due to malformed syntax or incorrect parameter type")
+		return h.badRequestErrorResponse(c, err)
 	}
 	data, err := h.FormsService.GetFormWithSettings(input.ID)
 	if err != nil {
 		if errors.Is(err, services.ErrFormNotFound) {
-			return echo.NewHTTPError(http.StatusNotFound, "The requested resource could not be found.")
+			return h.notFoundErrorResponse()
 		}
-		logging.Logger().Error(err.Error())
-		return echo.NewHTTPError(http.StatusInternalServerError, "the server encountered a problem and could not process your request.")
+		return h.internalServerErrorResponse(c, err)
 	}
 
 	return c.JSON(http.StatusOK, echo.Map{"data": data})
@@ -72,8 +71,7 @@ func (h *Handler) DeleteForms(c echo.Context) error {
 		Ids []uuid.UUID `json:"ids"`
 	}
 	if err := c.Bind(&input); err != nil {
-		logging.Logger().Error(err.Error())
-		return echo.NewHTTPError(http.StatusBadRequest, "The request could not be understood by the server due to malformed syntax or incorrect parameter type")
+		return h.badRequestErrorResponse(c, err)
 	}
 
 	authenticatedUser := utils.ContextGetUser(c.Request())
@@ -82,10 +80,9 @@ func (h *Handler) DeleteForms(c echo.Context) error {
 	if err != nil {
 		switch {
 		case errors.Is(err, services.ErrNoFormsDeleted):
-			return echo.NewHTTPError(http.StatusNotFound, "The requested resource(s) could not be found.")
+			return h.notFoundErrorResponse()
 		default:
-			logging.Logger().Error(err.Error())
-			return echo.NewHTTPError(http.StatusInternalServerError, "the server encountered a problem and could not process your request.")
+			return h.internalServerErrorResponse(c, err)
 		}
 	}
 	return c.NoContent(http.StatusNoContent)

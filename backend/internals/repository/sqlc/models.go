@@ -21,7 +21,7 @@ type Form struct {
 	Published   bool
 	CreatedAt   pgtype.Timestamptz
 	UpdatedAt   pgtype.Timestamptz
-	SettingsID  pgtype.Int2
+	SettingsID  int16
 }
 
 type FormResponses struct {

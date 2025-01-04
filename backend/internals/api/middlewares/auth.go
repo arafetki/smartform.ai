@@ -35,7 +35,7 @@ func RequireAuthenticatedUser(next echo.HandlerFunc) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		user := utils.ContextGetUser(c.Request())
 		if user.IsAnonymous() {
-			return echo.NewHTTPError(http.StatusUnauthorized, "Unauthorized")
+			return echo.NewHTTPError(http.StatusUnauthorized, "You must be authenticated to access this resource")
 		}
 
 		return next(c)

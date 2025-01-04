@@ -20,7 +20,7 @@ VALUES ($1,$2,$3,$4,$5,$6)
 
 type CreateFormParams struct {
 	UserID      uuid.UUID
-	SettingsID  pgtype.Int2
+	SettingsID  int16
 	Title       string
 	Description pgtype.Text
 	Fields      json.RawMessage
@@ -128,7 +128,7 @@ ORDER BY created_at DESC
 type ListFormsForUserRow struct {
 	ID          uuid.UUID
 	UserID      uuid.UUID
-	SettingsID  pgtype.Int2
+	SettingsID  int16
 	Title       string
 	Description pgtype.Text
 	ViewCount   int64
@@ -176,7 +176,7 @@ SET
     fields = COALESCE($4, fields),
     view_count = COALESCE($5, view_count),
     published = COALESCE($6, published)
-WHERE id = $7
+WHERE id = $7 AND user_id=$8
 `
 
 type UpdateFormParams struct {
@@ -187,6 +187,7 @@ type UpdateFormParams struct {
 	ViewCount   pgtype.Int8
 	Published   pgtype.Bool
 	ID          uuid.UUID
+	UserID      uuid.UUID
 }
 
 func (q *Queries) UpdateForm(ctx context.Context, arg UpdateFormParams) (int64, error) {
@@ -198,6 +199,7 @@ func (q *Queries) UpdateForm(ctx context.Context, arg UpdateFormParams) (int64, 
 		arg.ViewCount,
 		arg.Published,
 		arg.ID,
+		arg.UserID,
 	)
 	if err != nil {
 		return 0, err

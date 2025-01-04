@@ -43,7 +43,7 @@ SET
     fields = COALESCE(sqlc.narg('fields'), fields),
     view_count = COALESCE(sqlc.narg('view_count'), view_count),
     published = COALESCE(sqlc.narg('published'), published)
-WHERE id = sqlc.arg('id');
+WHERE id = sqlc.arg('id') AND user_id=sqlc.arg('user_id');
 
 -- name: DeleteFormsByOwner :execrows
-DELETE FROM core.forms WHERE id=ANY(sqlc.arg('ids')) AND user_id=$2;
+DELETE FROM core.forms WHERE id=ANY(sqlc.arg('ids')) AND user_id=sqlc.arg('user_id');

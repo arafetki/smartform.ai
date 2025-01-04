@@ -1,6 +1,8 @@
 package router
 
 import (
+	"fmt"
+	"net/http"
 	"time"
 
 	"github.com/arafetki/smartform.ai/backend/internals/api/handlers"
@@ -10,6 +12,8 @@ import (
 )
 
 func RegisterHandlers(e *echo.Echo, handler *handlers.Handler) {
+
+	e.HTTPErrorHandler = customHttpErrorHandler
 
 	e.Use(middleware.CORS())
 	e.Use(middleware.LoggerWithConfig(middleware.LoggerConfig{
@@ -35,5 +39,28 @@ func RegisterHandlers(e *echo.Echo, handler *handlers.Handler) {
 		v1.POST("/forms", handler.CreateForm, middlewares.RequireAuthenticatedUser)
 		v1.GET("/forms/:id", handler.FetchFormData)
 		v1.DELETE("/forms", handler.DeleteForms, middlewares.RequireAuthenticatedUser)
+	}
+}
+
+func customHttpErrorHandler(err error, c echo.Context) {
+
+	if c.Response().Committed {
+		return
+	}
+	code := http.StatusInternalServerError
+	var message any = "The server encountered a problem and could not process your request"
+	if httpError, ok := err.(*echo.HTTPError); ok {
+		code = httpError.Code
+		switch code {
+		case http.StatusNotFound:
+			message = "The requested resource could not be found."
+		case http.StatusMethodNotAllowed:
+			message = fmt.Sprintf("The %s method is not supported for this resource", c.Request().Method)
+		default:
+			message = httpError.Message
+		}
+	}
+	if err := c.JSON(code, echo.Map{"message": message}); err != nil {
+		c.Logger().Error(err)
 	}
 }

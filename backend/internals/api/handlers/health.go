@@ -8,5 +8,5 @@ import (
 )
 
 func (h *Handler) HealthCheck(c echo.Context) error {
-	return c.JSON(http.StatusOK, echo.Map{"timestamp": time.Now().UnixNano(), "status": "ok"})
+	return c.JSON(http.StatusOK, echo.Map{"timestamp": time.Now().UnixNano()})
 }
