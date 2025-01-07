@@ -37,32 +37,51 @@ func (q *Queries) CreateForm(ctx context.Context, arg CreateFormParams) error {
 	return err
 }
 
-const deleteFormsByOwner = `-- name: DeleteFormsByOwner :execrows
+const deleteForms = `-- name: DeleteForms :execrows
 DELETE FROM core.forms WHERE id=ANY($1) AND user_id=$2
 `
 
-type DeleteFormsByOwnerParams struct {
+type DeleteFormsParams struct {
 	Ids    []uuid.UUID `json:"ids"`
 	UserID uuid.UUID   `json:"user_id"`
 }
 
-func (q *Queries) DeleteFormsByOwner(ctx context.Context, arg DeleteFormsByOwnerParams) (int64, error) {
-	result, err := q.db.Exec(ctx, deleteFormsByOwner, arg.Ids, arg.UserID)
+func (q *Queries) DeleteForms(ctx context.Context, arg DeleteFormsParams) (int64, error) {
+	result, err := q.db.Exec(ctx, deleteForms, arg.Ids, arg.UserID)
 	if err != nil {
 		return 0, err
 	}
 	return result.RowsAffected(), nil
 }
 
-const listFormsForUser = `-- name: ListFormsForUser :many
+const getForm = `-- name: GetForm :one
+SELECT id, user_id, title, description, fields, published, created_at, updated_at
+FROM core.forms
+WHERE id = $1
+`
 
+func (q *Queries) GetForm(ctx context.Context, id uuid.UUID) (Form, error) {
+	row := q.db.QueryRow(ctx, getForm, id)
+	var i Form
+	err := row.Scan(
+		&i.ID,
+		&i.UserID,
+		&i.Title,
+		&i.Description,
+		&i.Fields,
+		&i.Published,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+	)
+	return i, err
+}
+
+const listFormsForUser = `-- name: ListFormsForUser :many
 SELECT
     id,
     user_id,
-    settings_id,
     title,
     description,
-    view_count,
     published,
     created_at,
     updated_at
@@ -74,33 +93,13 @@ ORDER BY created_at DESC
 type ListFormsForUserRow struct {
 	ID          uuid.UUID          `json:"id"`
 	UserID      uuid.UUID          `json:"user_id"`
-	SettingsID  int16              `json:"settings_id"`
 	Title       string             `json:"title"`
 	Description pgtype.Text        `json:"description"`
-	ViewCount   int64              `json:"view_count"`
 	Published   bool               `json:"published"`
 	CreatedAt   pgtype.Timestamptz `json:"created_at"`
 	UpdatedAt   pgtype.Timestamptz `json:"updated_at"`
 }
 
-// -- name: GetFormWithSettings :one
-// SELECT
-//
-//	f.id,
-//	f.user_id,
-//	f.title,
-//	f.description,
-//	f.fields,
-//	f.view_count,
-//	f.published,
-//	f.created_at,
-//	f.updated_at,
-//	sqlc.embed(s)
-//
-// FROM core.forms as f
-// JOIN core.form_settings as s
-// ON f.settings_id = s.id
-// WHERE f.id = $1;
 func (q *Queries) ListFormsForUser(ctx context.Context, userID uuid.UUID) ([]ListFormsForUserRow, error) {
 	rows, err := q.db.Query(ctx, listFormsForUser, userID)
 	if err != nil {
@@ -113,10 +112,8 @@ func (q *Queries) ListFormsForUser(ctx context.Context, userID uuid.UUID) ([]Lis
 		if err := rows.Scan(
 			&i.ID,
 			&i.UserID,
-			&i.SettingsID,
 			&i.Title,
 			&i.Description,
-			&i.ViewCount,
 			&i.Published,
 			&i.CreatedAt,
 			&i.UpdatedAt,
@@ -134,33 +131,27 @@ func (q *Queries) ListFormsForUser(ctx context.Context, userID uuid.UUID) ([]Lis
 const updateForm = `-- name: UpdateForm :execrows
 UPDATE core.forms
 SET
-    settings_id = COALESCE($1, settings_id),
-    title = COALESCE($2, title),
-    description = COALESCE($3, description),
-    fields = COALESCE($4, fields),
-    view_count = COALESCE($5, view_count),
-    published = COALESCE($6, published)
-WHERE id = $7 AND user_id=$8
+    title = COALESCE($1, title),
+    description = COALESCE($2, description),
+    fields = COALESCE($3, fields),
+    published = COALESCE($4, published)
+WHERE id = $5 AND user_id=$6
 `
 
 type UpdateFormParams struct {
-	SettingsID  pgtype.Int2 `json:"settings_id"`
 	Title       pgtype.Text `json:"title"`
 	Description pgtype.Text `json:"description"`
 	Fields      []byte      `json:"fields"`
-	ViewCount   pgtype.Int8 `json:"view_count"`
 	Published   pgtype.Bool `json:"published"`
-	ID          pgtype.UUID `json:"id"`
-	UserID      pgtype.UUID `json:"user_id"`
+	ID          uuid.UUID   `json:"id"`
+	UserID      uuid.UUID   `json:"user_id"`
 }
 
 func (q *Queries) UpdateForm(ctx context.Context, arg UpdateFormParams) (int64, error) {
 	result, err := q.db.Exec(ctx, updateForm,
-		arg.SettingsID,
 		arg.Title,
 		arg.Description,
 		arg.Fields,
-		arg.ViewCount,
 		arg.Published,
 		arg.ID,
 		arg.UserID,

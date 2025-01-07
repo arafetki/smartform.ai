@@ -9,7 +9,6 @@ type Service struct {
 	Users interface {
 		Create(params sqlc.CreateUserParams) error
 		GetOne(id uuid.UUID) (*sqlc.User, error)
-		GetAll() ([]sqlc.User, error)
 		Update(params sqlc.UpdateUserParams) error
 		Delete(id uuid.UUID) error
 	}
@@ -23,5 +22,8 @@ type Service struct {
 }
 
 func New(q *sqlc.Queries) *Service {
-	return &Service{}
+	return &Service{
+		Users: &userService{q},
+		Forms: &formService{q},
+	}
 }

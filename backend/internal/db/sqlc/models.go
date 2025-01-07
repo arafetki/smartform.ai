@@ -6,10 +6,25 @@ package sqlc
 
 import (
 	"encoding/json"
+	"net/netip"
 
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgtype"
 )
+
+type CoreFormResponse struct {
+	ID        uuid.UUID          `json:"id"`
+	FormID    uuid.UUID          `json:"form_id"`
+	Content   json.RawMessage    `json:"content"`
+	CreatedAt pgtype.Timestamptz `json:"created_at"`
+}
+
+type CoreFormView struct {
+	ID        uuid.UUID          `json:"id"`
+	FormID    uuid.UUID          `json:"form_id"`
+	IpAddress netip.Addr         `json:"ip_address"`
+	ViewedAt  pgtype.Timestamptz `json:"viewed_at"`
+}
 
 type Form struct {
 	ID          uuid.UUID          `json:"id"`
@@ -17,19 +32,15 @@ type Form struct {
 	Title       string             `json:"title"`
 	Description pgtype.Text        `json:"description"`
 	Fields      json.RawMessage    `json:"fields"`
-	ViewCount   int64              `json:"view_count"`
 	Published   bool               `json:"published"`
 	CreatedAt   pgtype.Timestamptz `json:"created_at"`
 	UpdatedAt   pgtype.Timestamptz `json:"updated_at"`
 }
 
 type User struct {
-	ID          uuid.UUID          `json:"id"`
-	Email       string             `json:"email"`
-	Name        string             `json:"name"`
-	PhoneNumber string             `json:"phone_number"`
-	IsVerified  bool               `json:"is_verified"`
-	AvatarUrl   pgtype.Text        `json:"avatar_url"`
-	CreatedAt   pgtype.Timestamptz `json:"created_at"`
-	UpdatedAt   pgtype.Timestamptz `json:"updated_at"`
+	ID         uuid.UUID          `json:"id"`
+	AvatarUrl  pgtype.Text        `json:"avatar_url"`
+	IsVerified bool               `json:"is_verified"`
+	CreatedAt  pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt  pgtype.Timestamptz `json:"updated_at"`
 }

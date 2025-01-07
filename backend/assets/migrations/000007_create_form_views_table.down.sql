@@ -1,0 +1,1 @@
+DROP TABLE IF EXISTS core.form_views CASCADE;

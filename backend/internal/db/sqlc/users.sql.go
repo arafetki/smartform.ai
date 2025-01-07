@@ -12,40 +12,23 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
-const countUsers = `-- name: CountUsers :one
-SELECT count(*) FROM core.users
-`
-
-func (q *Queries) CountUsers(ctx context.Context) (int64, error) {
-	row := q.db.QueryRow(ctx, countUsers)
-	var count int64
-	err := row.Scan(&count)
-	return count, err
-}
-
 const createUser = `-- name: CreateUser :exec
-INSERT INTO core.users (id,email,name,phone_number,is_verified,created_at,updated_at) VALUES ($1,$2,$3,$4,$5,$6,$7)
+INSERT INTO core.users (id,avatar_url,is_verified,created_at) VALUES ($1,$2,$3,$4)
 `
 
 type CreateUserParams struct {
-	ID          uuid.UUID          `json:"id"`
-	Email       string             `json:"email"`
-	Name        string             `json:"name"`
-	PhoneNumber string             `json:"phone_number"`
-	IsVerified  bool               `json:"is_verified"`
-	CreatedAt   pgtype.Timestamptz `json:"created_at"`
-	UpdatedAt   pgtype.Timestamptz `json:"updated_at"`
+	ID         uuid.UUID          `json:"id"`
+	AvatarUrl  pgtype.Text        `json:"avatar_url"`
+	IsVerified bool               `json:"is_verified"`
+	CreatedAt  pgtype.Timestamptz `json:"created_at"`
 }
 
 func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) error {
 	_, err := q.db.Exec(ctx, createUser,
 		arg.ID,
-		arg.Email,
-		arg.Name,
-		arg.PhoneNumber,
+		arg.AvatarUrl,
 		arg.IsVerified,
 		arg.CreatedAt,
-		arg.UpdatedAt,
 	)
 	return err
 }
@@ -63,7 +46,7 @@ func (q *Queries) DeleteUser(ctx context.Context, id uuid.UUID) (int64, error) {
 }
 
 const getUser = `-- name: GetUser :one
-SELECT id, email, name, phone_number, is_verified, avatar_url, created_at, updated_at FROM core.users
+SELECT id, avatar_url, is_verified, created_at, updated_at FROM core.users
 WHERE id = $1
 `
 
@@ -72,80 +55,30 @@ func (q *Queries) GetUser(ctx context.Context, id uuid.UUID) (User, error) {
 	var i User
 	err := row.Scan(
 		&i.ID,
-		&i.Email,
-		&i.Name,
-		&i.PhoneNumber,
-		&i.IsVerified,
 		&i.AvatarUrl,
+		&i.IsVerified,
 		&i.CreatedAt,
 		&i.UpdatedAt,
 	)
 	return i, err
 }
 
-const listUsers = `-- name: ListUsers :many
-SELECT id, email, name, phone_number, is_verified, avatar_url, created_at, updated_at FROM core.users
-ORDER BY created_at DESC
-`
-
-func (q *Queries) ListUsers(ctx context.Context) ([]User, error) {
-	rows, err := q.db.Query(ctx, listUsers)
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-	items := []User{}
-	for rows.Next() {
-		var i User
-		if err := rows.Scan(
-			&i.ID,
-			&i.Email,
-			&i.Name,
-			&i.PhoneNumber,
-			&i.IsVerified,
-			&i.AvatarUrl,
-			&i.CreatedAt,
-			&i.UpdatedAt,
-		); err != nil {
-			return nil, err
-		}
-		items = append(items, i)
-	}
-	if err := rows.Err(); err != nil {
-		return nil, err
-	}
-	return items, nil
-}
-
 const updateUser = `-- name: UpdateUser :execrows
 UPDATE core.users
 SET
-    email = COALESCE($1, email),
-    name = COALESCE($2, name),
-    phone_number = COALESCE($3, phone_number),
-    is_verified = COALESCE($4, is_verified),
-    avatar_url = COALESCE($5, avatar_url)
-WHERE id = $6
+    avatar_url = COALESCE($1, avatar_url),
+    is_verified = COALESCE($2, is_verified)
+WHERE id = $3
 `
 
 type UpdateUserParams struct {
-	Email       pgtype.Text `json:"email"`
-	Name        pgtype.Text `json:"name"`
-	PhoneNumber pgtype.Text `json:"phone_number"`
-	IsVerified  pgtype.Bool `json:"is_verified"`
-	AvatarUrl   pgtype.Text `json:"avatar_url"`
-	ID          uuid.UUID   `json:"id"`
+	AvatarUrl  pgtype.Text `json:"avatar_url"`
+	IsVerified pgtype.Bool `json:"is_verified"`
+	ID         uuid.UUID   `json:"id"`
 }
 
 func (q *Queries) UpdateUser(ctx context.Context, arg UpdateUserParams) (int64, error) {
-	result, err := q.db.Exec(ctx, updateUser,
-		arg.Email,
-		arg.Name,
-		arg.PhoneNumber,
-		arg.IsVerified,
-		arg.AvatarUrl,
-		arg.ID,
-	)
+	result, err := q.db.Exec(ctx, updateUser, arg.AvatarUrl, arg.IsVerified, arg.ID)
 	if err != nil {
 		return 0, err
 	}

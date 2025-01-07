@@ -24,7 +24,7 @@ func main() {
 	}
 
 	// Connect to database
-	db, err := db.Pool(cfg.Database.Dsn)
+	db, err := db.Pool(cfg.Database.Dsn, cfg.Database.Automigrate)
 	if err != nil {
 		logger.Error(err.Error())
 		os.Exit(1)
@@ -32,9 +32,7 @@ func main() {
 	defer db.Close()
 	logger.Info("Database connection established sucessfully")
 
-	svc := service.New(sqlc.New(db))
-
-	app := app.New(cfg, logger, svc)
+	app := app.New(cfg, logger, service.New(sqlc.New(db)))
 
 	if err := app.Run(); err != nil {
 		trace := string(debug.Stack())

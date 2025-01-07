@@ -22,7 +22,8 @@ type Config struct {
 		ShutdownPeriod time.Duration
 	}
 	Database struct {
-		Dsn string
+		Dsn         string
+		Automigrate bool
 	}
 }
 
@@ -41,6 +42,12 @@ func Init() Config {
 	cfg.Server.ShutdownPeriod = env.GetDuration("SERVER_SHUTDOWN_PERIOD", 30*time.Second)
 
 	cfg.Database.Dsn = env.GetString("DATABASE_DSN", "postgres:postgres@localhost:5432/smartform?sslmode=disable")
+
+	if cfg.App.Env == "development" {
+		cfg.Database.Automigrate = true
+	} else {
+		cfg.Database.Automigrate = false
+	}
 
 	return cfg
 }

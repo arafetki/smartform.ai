@@ -2,7 +2,7 @@ version: "2"
 sql:
     - engine: "postgresql"
       database:
-          uri: ${DATABASE_URL}
+          uri: 'postgresql://${DATABASE_DSN}'
       queries: "./internal/db/queries"
       schema: "./assets/migrations"
       gen:

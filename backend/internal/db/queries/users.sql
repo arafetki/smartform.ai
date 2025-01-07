@@ -2,25 +2,16 @@
 SELECT * FROM core.users
 WHERE id = $1;
 
--- name: ListUsers :many
-SELECT * FROM core.users
-ORDER BY created_at DESC;
-
 -- name: CreateUser :exec
-INSERT INTO core.users (id,email,name,phone_number,is_verified,created_at,updated_at) VALUES ($1,$2,$3,$4,$5,$6,$7);
+INSERT INTO core.users (id,avatar_url,is_verified,created_at) VALUES ($1,$2,$3,$4);
 
 -- name: UpdateUser :execrows
 UPDATE core.users
 SET
-    email = COALESCE(sqlc.narg('email'), email),
-    name = COALESCE(sqlc.narg('name'), name),
-    phone_number = COALESCE(sqlc.narg('phone_number'), phone_number),
-    is_verified = COALESCE(sqlc.narg('is_verified'), is_verified),
-    avatar_url = COALESCE(sqlc.narg('avatar_url'), avatar_url)
+    avatar_url = COALESCE(sqlc.narg('avatar_url'), avatar_url),
+    is_verified = COALESCE(sqlc.narg('is_verified'), is_verified)
 WHERE id = sqlc.arg('id');
 
 -- name: DeleteUser :execrows
 DELETE FROM core.users WHERE id = $1;
 
--- name: CountUsers :one
-SELECT count(*) FROM core.users;
