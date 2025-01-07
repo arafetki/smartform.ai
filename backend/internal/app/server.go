@@ -8,7 +8,7 @@ import (
 	"syscall"
 )
 
-func (app *application) start() error {
+func (app *application) serveHTTP() error {
 	shutdownErrChan := make(chan error)
 
 	go func() {

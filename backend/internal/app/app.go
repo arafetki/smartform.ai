@@ -5,7 +5,7 @@ import (
 	"net/http"
 	"sync"
 
-	rest "github.com/arafetki/smartform.ai/backend/internal/app/api"
+	"github.com/arafetki/smartform.ai/backend/internal/app/api"
 	"github.com/arafetki/smartform.ai/backend/internal/app/api/handler"
 	"github.com/arafetki/smartform.ai/backend/internal/config"
 	"github.com/arafetki/smartform.ai/backend/internal/logging"
@@ -36,11 +36,11 @@ func New(cfg config.Config, logger *logging.Logger, svc *service.Service) *appli
 
 func (app *application) Run() error {
 
-	// Register rest endpoints
-	rest.Routes(app.echo, handler.New(app.logger, app.cfg, app.svc))
+	// Register API routes
+	api.Routes(app.echo, handler.New(app.logger, app.cfg, app.svc))
 
 	// Start http server
-	return app.start()
+	return app.serveHTTP()
 }
 
 func (app *application) configure() {
