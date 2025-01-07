@@ -3,8 +3,8 @@ COLOR_RESET   = \033[0m
 COLOR_INFO    = \033[32m
 COLOR_COMMENT = \033[33m
 
-main_package_path = ./cmd/app
-binary_name = app
+MAIN_PACKAGE_PATH = ./cmd/app
+BINARY_NAME = app
 
 .PHONY: help
 ## Help
@@ -23,14 +23,14 @@ help:
 	{ lastLine = $$0 }' $(MAKEFILE_LIST)
 
 .PHONY: tidy
-## format code and tidy modfile
+## Format code and tidy modfile
 tidy:
 	go mod tidy -v
 	go fmt ./...
 
 
 .PHONY: audit
-## run quality control checks
+## Run quality control checks
 audit:
 	go mod verify
 	go vet ./...
@@ -39,43 +39,43 @@ audit:
 
 
 .PHONY: test
-## run unit tests
+## Run unit tests
 test:
 	go test -race -buildvcs -vet=off ./...
 
 
 .PHONY: build
-## build the application
+## Build the application
 build:
-	go build -o=./build/${binary_name} ${main_package_path}
+	go build -o=./build/${BINARY_NAME} ${MAIN_PACKAGE_PATH}
 
 .PHONY: run
-## run the  application
-run:
-	./build/${binary_name}
+## Run the application
+run: build
+	./build/${BINARY_NAME}
 
 .PHONY: run-dev
-## run the application with reloading on file changes
+## Run the application with reloading on file changes
 run-dev:
 	go run github.com/air-verse/air@latest \
-		--build.cmd "make build" --build.bin "./build/${binary_name}" --build.delay "100" \
+		--build.cmd "go build -o=./tmp/${BINARY_NAME} ${MAIN_PACKAGE_PATH}" --build.bin "./tmp/${BINARY_NAME}" --build.delay "100" \
 		--build.exclude_dir "" \
-		--build.include_ext "go, sql" \
+		--build.include_ext "go, sql, tmpl, html, css, scss, js, mjs, cjs, json, yaml, yml, toml, ini" \
 		--misc.clean_on_exit "true"
 
 .PHONY: migrations/new
 ## create a new database migration
 migrations/new:
-	@go run -tags 'postgres' github.com/golang-migrate/migrate/v4/cmd/migrate@latest create -seq -ext=.sql -dir=./migrations ${name}
+	@go run -tags 'postgres' github.com/golang-migrate/migrate/v4/cmd/migrate@latest create -seq -ext=.sql -dir=./assets/migrations ${name}
 
 
 .PHONY: migrations/up
 ## apply all up database migrations
 migrations/up:
-	@go run -tags 'postgres' github.com/golang-migrate/migrate/v4/cmd/migrate@latest -path=./migrations -database="${DATABASE_URL}" up
+	@go run -tags 'postgres' github.com/golang-migrate/migrate/v4/cmd/migrate@latest -path=./assets/migrations -database="postgresql://${DATABASE_DSN}" up
 
 
 .PHONY: migrations/down
 ## apply all down database migrations
 migrations/down:
-	@go run -tags 'postgres' github.com/golang-migrate/migrate/v4/cmd/migrate@latest -path=./migrations -database="${DATABASE_URL}" down
+	@go run -tags 'postgres' github.com/golang-migrate/migrate/v4/cmd/migrate@latest -path=./assets/migrations -database="postgresql://${DATABASE_DSN}" down

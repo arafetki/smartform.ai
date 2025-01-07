@@ -3,12 +3,12 @@ sql:
     - engine: "postgresql"
       database:
           uri: ${DATABASE_URL}
-      queries: "./internals/db/queries"
-      schema: "./migrations"
+      queries: "./internal/db/queries"
+      schema: "./assets/migrations"
       gen:
           go:
               package: "sqlc"
-              out: "./internals/repository/sqlc"
+              out: "./internal/db/sqlc"
               sql_package: "pgx/v5"
               emit_interface: true
               emit_empty_slices: true
@@ -27,5 +27,4 @@ overrides:
         rename:
             core_user: User
             core_form: Form
-            core_form_response: FormResponses
-            core_form_setting: FormSettings
+

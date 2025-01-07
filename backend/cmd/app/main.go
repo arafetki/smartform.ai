@@ -1,77 +1,44 @@
 package main
 
 import (
-	"fmt"
+	"log/slog"
 	"os"
 	"runtime/debug"
 
-	"github.com/arafetki/smartform.ai/backend/internals/api"
-	"github.com/arafetki/smartform.ai/backend/internals/api/handlers"
-	"github.com/arafetki/smartform.ai/backend/internals/api/middlewares"
-	"github.com/arafetki/smartform.ai/backend/internals/api/router"
-	"github.com/arafetki/smartform.ai/backend/internals/app"
-	"github.com/arafetki/smartform.ai/backend/internals/config"
-	"github.com/arafetki/smartform.ai/backend/internals/db"
-	"github.com/arafetki/smartform.ai/backend/internals/env"
-	"github.com/arafetki/smartform.ai/backend/internals/logging"
-	"github.com/arafetki/smartform.ai/backend/internals/repository/sqlc"
-	"github.com/arafetki/smartform.ai/backend/internals/services"
-	"github.com/arafetki/smartform.ai/backend/internals/validator"
+	"github.com/arafetki/smartform.ai/backend/internal/app"
+	"github.com/arafetki/smartform.ai/backend/internal/config"
+	"github.com/arafetki/smartform.ai/backend/internal/db"
+	"github.com/arafetki/smartform.ai/backend/internal/db/sqlc"
+	"github.com/arafetki/smartform.ai/backend/internal/logging"
+	"github.com/arafetki/smartform.ai/backend/internal/service"
 )
 
-func init() {
-	config.Init()
-	logging.Init(logging.Options{
-		Debug:  env.GetBool("APP_DEBUG", true),
-		Writer: os.Stdout,
-	})
-}
-
 func main() {
-	if err := startApp(); err != nil {
-		trace := string(debug.Stack())
-		logging.Logger().Error(err.Error(), "trace", trace)
+
+	cfg := config.Init()
+	logger := logging.New(os.Stdout, slog.LevelInfo)
+
+	// Set the log level based on the debug flag
+	if cfg.App.Debug {
+		logger.SetLevel(slog.LevelDebug)
+	}
+
+	// Connect to database
+	db, err := db.Pool(cfg.Database.Dsn)
+	if err != nil {
+		logger.Error(err.Error())
 		os.Exit(1)
 	}
-}
-
-func startApp() error {
-
-	cfg := config.Get()
-
-	db, err := db.Init(cfg.Database.URL)
-	if err != nil {
-		return err
-	}
 	defer db.Close()
+	logger.Info("Database connection established sucessfully")
 
-	logging.Logger().Info("Database connection established")
+	svc := service.New(sqlc.New(db))
 
-	queries := sqlc.New(db)
+	app := app.New(cfg, logger, svc)
 
-	us := services.NewUsersService(queries)
-	fs := services.NewFormsService(queries)
-	fss := services.NewFormSettingsService(queries)
-
-	handler := &handlers.Handler{
-		UsersService:        us,
-		FormsService:        fs,
-		FormSettingsService: fss,
+	if err := app.Run(); err != nil {
+		trace := string(debug.Stack())
+		logger.Error(err.Error(), "trace", trace)
+		os.Exit(1)
 	}
-
-	middleware := &middlewares.Middleware{
-		UsersService: us,
-	}
-
-	validator := validator.New()
-	app := app.New(cfg, validator)
-
-	router.RegisterHandlers(app.Router, handler, middleware)
-
-	server := api.NewServer(app.Router, &api.ServerOptions{
-		ReadTimeout:  cfg.Server.ReadTimeout,
-		WriteTimeout: cfg.Server.WriteTimeout,
-	})
-
-	return server.Start(fmt.Sprintf(":%d", cfg.Server.Port))
 }
