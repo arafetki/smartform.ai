@@ -7,6 +7,8 @@ import (
 
 	"github.com/arafetki/smartform.ai/backend/internal/app/api"
 	"github.com/arafetki/smartform.ai/backend/internal/app/api/handler"
+	"github.com/arafetki/smartform.ai/backend/internal/app/api/middleware"
+	"github.com/arafetki/smartform.ai/backend/internal/app/api/validator"
 	"github.com/arafetki/smartform.ai/backend/internal/config"
 	"github.com/arafetki/smartform.ai/backend/internal/logging"
 	"github.com/arafetki/smartform.ai/backend/internal/service"
@@ -37,7 +39,11 @@ func New(cfg config.Config, logger *logging.Logger, svc *service.Service) *appli
 func (app *application) Run() error {
 
 	// Register API routes
-	api.Routes(app.echo, handler.New(app.logger, app.cfg, app.svc))
+	api.Routes(
+		app.echo,
+		handler.New(app.logger, app.cfg, app.svc),
+		middleware.New(app.logger, app.cfg),
+	)
 
 	// Start http server
 	return app.serveHTTP()
@@ -50,6 +56,7 @@ func (app *application) configure() {
 	app.echo.Server.ReadTimeout = app.cfg.Server.ReadTimeout
 	app.echo.Server.WriteTimeout = app.cfg.Server.WriteTimeout
 	app.echo.HTTPErrorHandler = handleErrors(app.logger)
+	app.echo.Validator = validator.New()
 }
 
 func handleErrors(logger *logging.Logger) echo.HTTPErrorHandler {

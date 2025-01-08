@@ -4,11 +4,12 @@ import (
 	"net/http"
 
 	"github.com/arafetki/smartform.ai/backend/internal/app/api/handler"
+	"github.com/arafetki/smartform.ai/backend/internal/app/api/middleware"
 	"github.com/labstack/echo/v4"
 	echoMiddleware "github.com/labstack/echo/v4/middleware"
 )
 
-func Routes(r *echo.Echo, h *handler.Handler) {
+func Routes(r *echo.Echo, h *handler.Handler, m *middleware.Middleware) {
 
 	// Middleware
 	r.Use(echoMiddleware.RequestID())
@@ -23,4 +24,9 @@ func Routes(r *echo.Echo, h *handler.Handler) {
 
 	// Health checks endpoint
 	r.GET("/health", h.HealthCheckHandler)
+
+	// Sub-router
+	v1 := r.Group("/v1", m.Authenticate)
+
+	v1.POST("/forms", h.CreateFormHandler, m.RequireAuthenticatedUser)
 }

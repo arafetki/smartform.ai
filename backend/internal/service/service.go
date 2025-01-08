@@ -15,9 +15,9 @@ type Service struct {
 	Forms interface {
 		Create(params sqlc.CreateFormParams) error
 		GetOne(id uuid.UUID) (*sqlc.Form, error)
-		GetAllForUser(userID uuid.UUID) ([]sqlc.Form, error)
+		GetAllForUser(userID uuid.UUID) ([]sqlc.ListFormsForUserRow, error)
 		Update(params sqlc.UpdateFormParams) error
-		Delete(id uuid.UUID) error
+		DeleteInBulk(ids []uuid.UUID, ownerID uuid.UUID) error
 	}
 }
 
