@@ -26,7 +26,7 @@ func main() {
 	// Connect to database
 	db, err := db.Pool(cfg.Database.Dsn, cfg.Database.Automigrate)
 	if err != nil {
-		logger.Error(err.Error())
+		logger.Error(err.Error(), "trace", string(debug.Stack()))
 		os.Exit(1)
 	}
 	defer db.Close()
@@ -35,8 +35,7 @@ func main() {
 	app := app.New(cfg, logger, service.New(sqlc.New(db)))
 
 	if err := app.Run(); err != nil {
-		trace := string(debug.Stack())
-		logger.Error(err.Error(), "trace", trace)
+		logger.Error(err.Error(), "trace", string(debug.Stack()))
 		os.Exit(1)
 	}
 }

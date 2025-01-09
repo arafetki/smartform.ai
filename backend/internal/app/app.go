@@ -42,7 +42,7 @@ func (app *application) Run() error {
 	api.Routes(
 		app.echo,
 		handler.New(app.logger, app.cfg, app.svc),
-		middleware.New(app.logger, app.cfg),
+		middleware.New(app.logger, app.cfg, app.svc),
 	)
 
 	// Start http server

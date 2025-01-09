@@ -25,6 +25,9 @@ type Config struct {
 		Dsn         string
 		Automigrate bool
 	}
+	JWT struct {
+		Secret string
+	}
 }
 
 func Init() Config {
@@ -42,6 +45,7 @@ func Init() Config {
 	cfg.Server.ShutdownPeriod = env.GetDuration("SERVER_SHUTDOWN_PERIOD", 30*time.Second)
 
 	cfg.Database.Dsn = env.GetString("DATABASE_DSN", "postgres:postgres@localhost:5432/smartform?sslmode=disable")
+	cfg.JWT.Secret = env.GetString("JWT_SECRET_KEY", "secret")
 
 	if cfg.App.Env == "development" {
 		cfg.Database.Automigrate = true

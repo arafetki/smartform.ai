@@ -37,21 +37,13 @@ func (q *Queries) CreateForm(ctx context.Context, arg CreateFormParams) error {
 	return err
 }
 
-const deleteForms = `-- name: DeleteForms :execrows
-DELETE FROM core.forms WHERE id=ANY($1) AND user_id=$2
+const deleteForm = `-- name: DeleteForm :exec
+DELETE FROM core.forms WHERE id=$1
 `
 
-type DeleteFormsParams struct {
-	Ids    []uuid.UUID `json:"ids"`
-	UserID uuid.UUID   `json:"user_id"`
-}
-
-func (q *Queries) DeleteForms(ctx context.Context, arg DeleteFormsParams) (int64, error) {
-	result, err := q.db.Exec(ctx, deleteForms, arg.Ids, arg.UserID)
-	if err != nil {
-		return 0, err
-	}
-	return result.RowsAffected(), nil
+func (q *Queries) DeleteForm(ctx context.Context, id uuid.UUID) error {
+	_, err := q.db.Exec(ctx, deleteForm, id)
+	return err
 }
 
 const getForm = `-- name: GetForm :one
@@ -135,7 +127,7 @@ SET
     description = COALESCE($2, description),
     fields = COALESCE($3, fields),
     published = COALESCE($4, published)
-WHERE id = $5 AND user_id=$6
+WHERE id = $5
 `
 
 type UpdateFormParams struct {
@@ -144,7 +136,6 @@ type UpdateFormParams struct {
 	Fields      []byte      `json:"fields"`
 	Published   pgtype.Bool `json:"published"`
 	ID          uuid.UUID   `json:"id"`
-	UserID      uuid.UUID   `json:"user_id"`
 }
 
 func (q *Queries) UpdateForm(ctx context.Context, arg UpdateFormParams) (int64, error) {
@@ -154,7 +145,6 @@ func (q *Queries) UpdateForm(ctx context.Context, arg UpdateFormParams) (int64, 
 		arg.Fields,
 		arg.Published,
 		arg.ID,
-		arg.UserID,
 	)
 	if err != nil {
 		return 0, err

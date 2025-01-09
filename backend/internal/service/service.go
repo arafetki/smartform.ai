@@ -17,7 +17,7 @@ type Service struct {
 		GetOne(id uuid.UUID) (*sqlc.Form, error)
 		GetAllForUser(userID uuid.UUID) ([]sqlc.ListFormsForUserRow, error)
 		Update(params sqlc.UpdateFormParams) error
-		DeleteInBulk(ids []uuid.UUID, ownerID uuid.UUID) error
+		Delete(Id uuid.UUID, ownerId uuid.UUID) error
 	}
 }
 

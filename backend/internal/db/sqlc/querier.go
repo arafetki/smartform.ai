@@ -13,7 +13,7 @@ import (
 type Querier interface {
 	CreateForm(ctx context.Context, arg CreateFormParams) error
 	CreateUser(ctx context.Context, arg CreateUserParams) error
-	DeleteForms(ctx context.Context, arg DeleteFormsParams) (int64, error)
+	DeleteForm(ctx context.Context, id uuid.UUID) error
 	DeleteUser(ctx context.Context, id uuid.UUID) (int64, error)
 	GetForm(ctx context.Context, id uuid.UUID) (Form, error)
 	GetUser(ctx context.Context, id uuid.UUID) (User, error)

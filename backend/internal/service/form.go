@@ -15,8 +15,8 @@ type formService struct {
 }
 
 var (
-	ErrFormNotFound   = errors.New("form not found")
-	ErrNoFormsDeleted = errors.New("no forms deleted")
+	ErrFormNotFound = errors.New("form not found")
+	ErrUnauthorized = errors.New("unauthorized")
 )
 
 func (s *formService) Create(params sqlc.CreateFormParams) error {
@@ -61,17 +61,18 @@ func (s *formService) Update(params sqlc.UpdateFormParams) error {
 
 	return nil
 }
-func (s *formService) DeleteInBulk(ids []uuid.UUID, ownerID uuid.UUID) error {
+func (s *formService) Delete(id uuid.UUID, ownerId uuid.UUID) error {
 
 	ctx, cancel := utils.ContextWithTimeout(3 * time.Second)
 	defer cancel()
 
-	rowsAffected, err := s.q.DeleteForms(ctx, sqlc.DeleteFormsParams{Ids: ids, UserID: ownerID})
+	form, err := s.GetOne(id)
 	if err != nil {
 		return err
 	}
-	if rowsAffected == 0 {
-		return ErrNoFormsDeleted
+	if form.UserID != ownerId {
+		return ErrUnauthorized
 	}
-	return nil
+
+	return s.q.DeleteForm(ctx, id)
 }

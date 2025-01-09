@@ -27,7 +27,7 @@ SET
     description = COALESCE(sqlc.narg('description'), description),
     fields = COALESCE(sqlc.narg('fields'), fields),
     published = COALESCE(sqlc.narg('published'), published)
-WHERE id = sqlc.arg('id') AND user_id=sqlc.arg('user_id');
+WHERE id = sqlc.arg('id');
 
--- name: DeleteForms :execrows
-DELETE FROM core.forms WHERE id=ANY(sqlc.arg('ids')) AND user_id=sqlc.arg('user_id');
+-- name: DeleteForm :exec
+DELETE FROM core.forms WHERE id=$1;

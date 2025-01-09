@@ -29,4 +29,5 @@ func Routes(r *echo.Echo, h *handler.Handler, m *middleware.Middleware) {
 	v1 := r.Group("/v1", m.Authenticate)
 
 	v1.POST("/forms", h.CreateFormHandler, m.RequireAuthenticatedUser)
+	v1.DELETE("/forms/:id", h.DeleteFormHandler, m.RequireAuthenticatedUser)
 }
