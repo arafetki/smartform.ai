@@ -6,7 +6,6 @@ import (
 
 	"github.com/arafetki/smartform.ai/backend/internal/db/sqlc"
 	"github.com/arafetki/smartform.ai/backend/internal/jwt"
-	"github.com/arafetki/smartform.ai/backend/internal/utils"
 	"github.com/labstack/echo/v4"
 )
 
@@ -33,11 +32,12 @@ func (m *Middleware) Authenticate(next echo.HandlerFunc) echo.HandlerFunc {
 			m.logger.Error(err.Error())
 			return echo.NewHTTPError(http.StatusUnauthorized, "Invalid or missing authentication token.")
 		}
-		userId, err := utils.ExtractUserIdFromJwtClaims(claims)
+		userId, err := claims.GetSubject()
 		if err != nil {
 			m.logger.Error(err.Error())
 			return echo.NewHTTPError(http.StatusUnauthorized, "Invalid or missing authentication token.")
 		}
+
 		user, err := m.service.Users.GetOne(userId)
 		if err != nil {
 			return echo.NewHTTPError(http.StatusUnauthorized, "Invalid or missing authentication token.")
@@ -51,6 +51,16 @@ func (m *Middleware) RequireAuthenticatedUser(next echo.HandlerFunc) echo.Handle
 		user, ok := c.Get("user").(*sqlc.User)
 		if !ok || user == anonymousUser {
 			return echo.NewHTTPError(http.StatusUnauthorized, "You must be authenticated to access this resource.")
+		}
+		return next(c)
+	}
+}
+
+func (m *Middleware) RequireVerifiedUser(next echo.HandlerFunc) echo.HandlerFunc {
+	return func(c echo.Context) error {
+		user := c.Get("user").(*sqlc.User)
+		if !user.IsVerified {
+			return echo.NewHTTPError(http.StatusUnauthorized, "You must verify your email to access this resource.")
 		}
 		return next(c)
 	}

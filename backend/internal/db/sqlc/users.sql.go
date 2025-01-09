@@ -8,28 +8,21 @@ package sqlc
 import (
 	"context"
 
-	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
 const createUser = `-- name: CreateUser :exec
-INSERT INTO core.users (id,avatar_url,is_verified,created_at) VALUES ($1,$2,$3,$4)
+INSERT INTO core.users (id,is_verified,created_at) VALUES ($1,$2,$3)
 `
 
 type CreateUserParams struct {
-	ID         uuid.UUID          `json:"id"`
-	AvatarUrl  pgtype.Text        `json:"avatar_url"`
+	ID         string             `json:"id"`
 	IsVerified bool               `json:"is_verified"`
 	CreatedAt  pgtype.Timestamptz `json:"created_at"`
 }
 
 func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) error {
-	_, err := q.db.Exec(ctx, createUser,
-		arg.ID,
-		arg.AvatarUrl,
-		arg.IsVerified,
-		arg.CreatedAt,
-	)
+	_, err := q.db.Exec(ctx, createUser, arg.ID, arg.IsVerified, arg.CreatedAt)
 	return err
 }
 
@@ -37,7 +30,7 @@ const deleteUser = `-- name: DeleteUser :execrows
 DELETE FROM core.users WHERE id = $1
 `
 
-func (q *Queries) DeleteUser(ctx context.Context, id uuid.UUID) (int64, error) {
+func (q *Queries) DeleteUser(ctx context.Context, id string) (int64, error) {
 	result, err := q.db.Exec(ctx, deleteUser, id)
 	if err != nil {
 		return 0, err
@@ -46,16 +39,15 @@ func (q *Queries) DeleteUser(ctx context.Context, id uuid.UUID) (int64, error) {
 }
 
 const getUser = `-- name: GetUser :one
-SELECT id, avatar_url, is_verified, created_at, updated_at FROM core.users
+SELECT id, is_verified, created_at, updated_at FROM core.users
 WHERE id = $1
 `
 
-func (q *Queries) GetUser(ctx context.Context, id uuid.UUID) (User, error) {
+func (q *Queries) GetUser(ctx context.Context, id string) (User, error) {
 	row := q.db.QueryRow(ctx, getUser, id)
 	var i User
 	err := row.Scan(
 		&i.ID,
-		&i.AvatarUrl,
 		&i.IsVerified,
 		&i.CreatedAt,
 		&i.UpdatedAt,
@@ -66,19 +58,17 @@ func (q *Queries) GetUser(ctx context.Context, id uuid.UUID) (User, error) {
 const updateUser = `-- name: UpdateUser :execrows
 UPDATE core.users
 SET
-    avatar_url = COALESCE($1, avatar_url),
-    is_verified = COALESCE($2, is_verified)
-WHERE id = $3
+    is_verified = COALESCE($1, is_verified)
+WHERE id = $2
 `
 
 type UpdateUserParams struct {
-	AvatarUrl  pgtype.Text `json:"avatar_url"`
 	IsVerified pgtype.Bool `json:"is_verified"`
-	ID         uuid.UUID   `json:"id"`
+	ID         string      `json:"id"`
 }
 
 func (q *Queries) UpdateUser(ctx context.Context, arg UpdateUserParams) (int64, error) {
-	result, err := q.db.Exec(ctx, updateUser, arg.AvatarUrl, arg.IsVerified, arg.ID)
+	result, err := q.db.Exec(ctx, updateUser, arg.IsVerified, arg.ID)
 	if err != nil {
 		return 0, err
 	}

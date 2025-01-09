@@ -6,7 +6,6 @@ import (
 
 	"github.com/arafetki/smartform.ai/backend/internal/db/sqlc"
 	"github.com/arafetki/smartform.ai/backend/internal/utils"
-	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgconn"
 )
@@ -41,7 +40,7 @@ func (s *userService) Create(params sqlc.CreateUserParams) error {
 	return nil
 }
 
-func (s *userService) GetOne(id uuid.UUID) (*sqlc.User, error) {
+func (s *userService) GetOne(id string) (*sqlc.User, error) {
 	ctx, cancel := utils.ContextWithTimeout(5 * time.Second)
 	defer cancel()
 	user, err := s.q.GetUser(ctx, id)
@@ -68,7 +67,7 @@ func (s *userService) Update(params sqlc.UpdateUserParams) error {
 	return nil
 }
 
-func (s *userService) Delete(id uuid.UUID) error {
+func (s *userService) Delete(id string) error {
 	ctx, cancel := utils.ContextWithTimeout(5 * time.Second)
 	defer cancel()
 	rowsAffected, err := s.q.DeleteUser(ctx, id)

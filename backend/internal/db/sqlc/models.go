@@ -28,7 +28,7 @@ type CoreFormView struct {
 
 type Form struct {
 	ID          uuid.UUID          `json:"id"`
-	UserID      uuid.UUID          `json:"user_id"`
+	UserID      string             `json:"user_id"`
 	Title       string             `json:"title"`
 	Description pgtype.Text        `json:"description"`
 	Fields      json.RawMessage    `json:"fields"`
@@ -38,8 +38,7 @@ type Form struct {
 }
 
 type User struct {
-	ID         uuid.UUID          `json:"id"`
-	AvatarUrl  pgtype.Text        `json:"avatar_url"`
+	ID         string             `json:"id"`
 	IsVerified bool               `json:"is_verified"`
 	CreatedAt  pgtype.Timestamptz `json:"created_at"`
 	UpdatedAt  pgtype.Timestamptz `json:"updated_at"`

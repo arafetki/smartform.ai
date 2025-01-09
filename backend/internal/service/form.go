@@ -39,7 +39,7 @@ func (s *formService) GetOne(id uuid.UUID) (*sqlc.Form, error) {
 	}
 	return &form, nil
 }
-func (s *formService) GetAllForUser(userID uuid.UUID) ([]sqlc.ListFormsForUserRow, error) {
+func (s *formService) GetAllForUser(userID string) ([]sqlc.ListFormsForUserRow, error) {
 	ctx, cancel := utils.ContextWithTimeout(3 * time.Second)
 	defer cancel()
 
@@ -61,7 +61,7 @@ func (s *formService) Update(params sqlc.UpdateFormParams) error {
 
 	return nil
 }
-func (s *formService) Delete(id uuid.UUID, ownerId uuid.UUID) error {
+func (s *formService) Delete(id uuid.UUID, ownerId string) error {
 
 	ctx, cancel := utils.ContextWithTimeout(3 * time.Second)
 	defer cancel()

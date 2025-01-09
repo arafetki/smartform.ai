@@ -19,7 +19,7 @@ VALUES ($1,$2,$3,$4,$5)
 `
 
 type CreateFormParams struct {
-	UserID      uuid.UUID       `json:"user_id"`
+	UserID      string          `json:"user_id"`
 	Title       string          `json:"title"`
 	Description pgtype.Text     `json:"description"`
 	Fields      json.RawMessage `json:"fields"`
@@ -84,7 +84,7 @@ ORDER BY created_at DESC
 
 type ListFormsForUserRow struct {
 	ID          uuid.UUID          `json:"id"`
-	UserID      uuid.UUID          `json:"user_id"`
+	UserID      string             `json:"user_id"`
 	Title       string             `json:"title"`
 	Description pgtype.Text        `json:"description"`
 	Published   bool               `json:"published"`
@@ -92,7 +92,7 @@ type ListFormsForUserRow struct {
 	UpdatedAt   pgtype.Timestamptz `json:"updated_at"`
 }
 
-func (q *Queries) ListFormsForUser(ctx context.Context, userID uuid.UUID) ([]ListFormsForUserRow, error) {
+func (q *Queries) ListFormsForUser(ctx context.Context, userID string) ([]ListFormsForUserRow, error) {
 	rows, err := q.db.Query(ctx, listFormsForUser, userID)
 	if err != nil {
 		return nil, err

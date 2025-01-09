@@ -1,7 +1,7 @@
 CREATE TABLE
     IF NOT EXISTS core.forms (
         id uuid PRIMARY KEY DEFAULT gen_random_uuid (),
-        user_id uuid NOT NULL,
+        user_id varchar(36) NOT NULL,
         title varchar(255) NOT NULL,
         description text,
         fields jsonb NOT NULL DEFAULT '[]',

@@ -9,6 +9,7 @@ import (
 )
 
 func (app *application) serveHTTP() error {
+
 	shutdownErrChan := make(chan error)
 
 	go func() {
