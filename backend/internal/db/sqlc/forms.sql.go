@@ -14,7 +14,7 @@ import (
 )
 
 const createForm = `-- name: CreateForm :exec
-INSERT INTO core.forms (user_id,title,description,fields,published)
+INSERT INTO forms (user_id,title,description,fields,is_published)
 VALUES ($1,$2,$3,$4,$5)
 `
 
@@ -23,7 +23,7 @@ type CreateFormParams struct {
 	Title       string          `json:"title"`
 	Description pgtype.Text     `json:"description"`
 	Fields      json.RawMessage `json:"fields"`
-	Published   bool            `json:"published"`
+	IsPublished bool            `json:"is_published"`
 }
 
 func (q *Queries) CreateForm(ctx context.Context, arg CreateFormParams) error {
@@ -32,81 +32,54 @@ func (q *Queries) CreateForm(ctx context.Context, arg CreateFormParams) error {
 		arg.Title,
 		arg.Description,
 		arg.Fields,
-		arg.Published,
+		arg.IsPublished,
 	)
 	return err
 }
 
-const deleteForm = `-- name: DeleteForm :exec
-DELETE FROM core.forms WHERE id=$1
+const deleteForm = `-- name: DeleteForm :execrows
+DELETE FROM forms WHERE id=$1
 `
 
-func (q *Queries) DeleteForm(ctx context.Context, id uuid.UUID) error {
-	_, err := q.db.Exec(ctx, deleteForm, id)
-	return err
+func (q *Queries) DeleteForm(ctx context.Context, id uuid.UUID) (int64, error) {
+	result, err := q.db.Exec(ctx, deleteForm, id)
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected(), nil
 }
 
-const getForm = `-- name: GetForm :one
-SELECT id, user_id, title, description, fields, published, created_at, updated_at
-FROM core.forms
-WHERE id = $1
-`
-
-func (q *Queries) GetForm(ctx context.Context, id uuid.UUID) (Form, error) {
-	row := q.db.QueryRow(ctx, getForm, id)
-	var i Form
-	err := row.Scan(
-		&i.ID,
-		&i.UserID,
-		&i.Title,
-		&i.Description,
-		&i.Fields,
-		&i.Published,
-		&i.CreatedAt,
-		&i.UpdatedAt,
-	)
-	return i, err
-}
-
-const listFormsForUser = `-- name: ListFormsForUser :many
+const getAllFormsForUser = `-- name: GetAllFormsForUser :many
 SELECT
     id,
     user_id,
     title,
     description,
-    published,
+    fields,
+    is_published,
     created_at,
     updated_at
-FROM core.forms
+FROM forms
 WHERE user_id = $1
 ORDER BY created_at DESC
 `
 
-type ListFormsForUserRow struct {
-	ID          uuid.UUID          `json:"id"`
-	UserID      string             `json:"user_id"`
-	Title       string             `json:"title"`
-	Description pgtype.Text        `json:"description"`
-	Published   bool               `json:"published"`
-	CreatedAt   pgtype.Timestamptz `json:"created_at"`
-	UpdatedAt   pgtype.Timestamptz `json:"updated_at"`
-}
-
-func (q *Queries) ListFormsForUser(ctx context.Context, userID string) ([]ListFormsForUserRow, error) {
-	rows, err := q.db.Query(ctx, listFormsForUser, userID)
+func (q *Queries) GetAllFormsForUser(ctx context.Context, userID string) ([]Form, error) {
+	rows, err := q.db.Query(ctx, getAllFormsForUser, userID)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	items := []ListFormsForUserRow{}
+	items := []Form{}
 	for rows.Next() {
-		var i ListFormsForUserRow
+		var i Form
 		if err := rows.Scan(
 			&i.ID,
 			&i.UserID,
 			&i.Title,
 			&i.Description,
-			&i.Published,
+			&i.Fields,
+			&i.IsPublished,
 			&i.CreatedAt,
 			&i.UpdatedAt,
 		); err != nil {
@@ -120,13 +93,43 @@ func (q *Queries) ListFormsForUser(ctx context.Context, userID string) ([]ListFo
 	return items, nil
 }
 
+const getForm = `-- name: GetForm :one
+SELECT
+    id,
+    user_id,
+    title,
+    description,
+    fields,
+    is_published,
+    created_at,
+    updated_at
+FROM forms
+WHERE id = $1
+`
+
+func (q *Queries) GetForm(ctx context.Context, id uuid.UUID) (Form, error) {
+	row := q.db.QueryRow(ctx, getForm, id)
+	var i Form
+	err := row.Scan(
+		&i.ID,
+		&i.UserID,
+		&i.Title,
+		&i.Description,
+		&i.Fields,
+		&i.IsPublished,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+	)
+	return i, err
+}
+
 const updateForm = `-- name: UpdateForm :execrows
-UPDATE core.forms
+UPDATE forms
 SET
     title = COALESCE($1, title),
     description = COALESCE($2, description),
     fields = COALESCE($3, fields),
-    published = COALESCE($4, published)
+    is_published = COALESCE($4, is_published)
 WHERE id = $5
 `
 
@@ -134,7 +137,7 @@ type UpdateFormParams struct {
 	Title       pgtype.Text `json:"title"`
 	Description pgtype.Text `json:"description"`
 	Fields      []byte      `json:"fields"`
-	Published   pgtype.Bool `json:"published"`
+	IsPublished pgtype.Bool `json:"is_published"`
 	ID          uuid.UUID   `json:"id"`
 }
 
@@ -143,7 +146,7 @@ func (q *Queries) UpdateForm(ctx context.Context, arg UpdateFormParams) (int64, 
 		arg.Title,
 		arg.Description,
 		arg.Fields,
-		arg.Published,
+		arg.IsPublished,
 		arg.ID,
 	)
 	if err != nil {

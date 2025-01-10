@@ -12,22 +12,36 @@ import (
 )
 
 const createUser = `-- name: CreateUser :exec
-INSERT INTO core.users (id,is_verified,created_at) VALUES ($1,$2,$3)
+INSERT INTO users (id,first_name,last_name,email,avatar_url,is_email_verified,created_at,updated_at) VALUES ($1,$2,$3,$4,$5,$6,$7,$8)
 `
 
 type CreateUserParams struct {
-	ID         string             `json:"id"`
-	IsVerified bool               `json:"is_verified"`
-	CreatedAt  pgtype.Timestamptz `json:"created_at"`
+	ID              string             `json:"id"`
+	FirstName       string             `json:"first_name"`
+	LastName        pgtype.Text        `json:"last_name"`
+	Email           string             `json:"email"`
+	AvatarUrl       pgtype.Text        `json:"avatar_url"`
+	IsEmailVerified bool               `json:"is_email_verified"`
+	CreatedAt       pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt       pgtype.Timestamptz `json:"updated_at"`
 }
 
 func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) error {
-	_, err := q.db.Exec(ctx, createUser, arg.ID, arg.IsVerified, arg.CreatedAt)
+	_, err := q.db.Exec(ctx, createUser,
+		arg.ID,
+		arg.FirstName,
+		arg.LastName,
+		arg.Email,
+		arg.AvatarUrl,
+		arg.IsEmailVerified,
+		arg.CreatedAt,
+		arg.UpdatedAt,
+	)
 	return err
 }
 
 const deleteUser = `-- name: DeleteUser :execrows
-DELETE FROM core.users WHERE id = $1
+DELETE FROM users WHERE id = $1
 `
 
 func (q *Queries) DeleteUser(ctx context.Context, id string) (int64, error) {
@@ -39,7 +53,7 @@ func (q *Queries) DeleteUser(ctx context.Context, id string) (int64, error) {
 }
 
 const getUser = `-- name: GetUser :one
-SELECT id, is_verified, created_at, updated_at FROM core.users
+SELECT id, first_name, last_name, email, avatar_url, is_email_verified, created_at, updated_at FROM users
 WHERE id = $1
 `
 
@@ -48,7 +62,11 @@ func (q *Queries) GetUser(ctx context.Context, id string) (User, error) {
 	var i User
 	err := row.Scan(
 		&i.ID,
-		&i.IsVerified,
+		&i.FirstName,
+		&i.LastName,
+		&i.Email,
+		&i.AvatarUrl,
+		&i.IsEmailVerified,
 		&i.CreatedAt,
 		&i.UpdatedAt,
 	)
@@ -56,19 +74,34 @@ func (q *Queries) GetUser(ctx context.Context, id string) (User, error) {
 }
 
 const updateUser = `-- name: UpdateUser :execrows
-UPDATE core.users
+UPDATE users
 SET
-    is_verified = COALESCE($1, is_verified)
-WHERE id = $2
+    first_name = COALESCE($1, first_name),
+    last_name = COALESCE($2, last_name),
+    email = COALESCE($3, email),
+    avatar_url = COALESCE($4, avatar_url),
+    is_email_verified = COALESCE($5, is_email_verified)
+WHERE id = $6
 `
 
 type UpdateUserParams struct {
-	IsVerified pgtype.Bool `json:"is_verified"`
-	ID         string      `json:"id"`
+	FirstName       pgtype.Text `json:"first_name"`
+	LastName        pgtype.Text `json:"last_name"`
+	Email           pgtype.Text `json:"email"`
+	AvatarUrl       pgtype.Text `json:"avatar_url"`
+	IsEmailVerified pgtype.Bool `json:"is_email_verified"`
+	ID              string      `json:"id"`
 }
 
 func (q *Queries) UpdateUser(ctx context.Context, arg UpdateUserParams) (int64, error) {
-	result, err := q.db.Exec(ctx, updateUser, arg.IsVerified, arg.ID)
+	result, err := q.db.Exec(ctx, updateUser,
+		arg.FirstName,
+		arg.LastName,
+		arg.Email,
+		arg.AvatarUrl,
+		arg.IsEmailVerified,
+		arg.ID,
+	)
 	if err != nil {
 		return 0, err
 	}

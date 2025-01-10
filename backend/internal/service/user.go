@@ -1,11 +1,11 @@
 package service
 
 import (
+	"context"
 	"errors"
 	"time"
 
 	"github.com/arafetki/smartform.ai/backend/internal/db/sqlc"
-	"github.com/arafetki/smartform.ai/backend/internal/utils"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgconn"
 )
@@ -15,14 +15,14 @@ type userService struct {
 }
 
 var (
-	ErrUserNotFound  = errors.New("user not found")
-	ErrDuplicateUser = errors.New("user already exists")
+	ErrUserNotFound   = errors.New("user not found")
+	ErrDuplicateUser  = errors.New("user already exists")
+	ErrDuplicateEmail = errors.New("email already exists")
 )
 
-func (s *userService) Create(params sqlc.CreateUserParams) error {
-	ctx, cancel := utils.ContextWithTimeout(5 * time.Second)
+func (s *userService) Create(ctx context.Context, params sqlc.CreateUserParams) error {
+	ctx, cancel := context.WithTimeout(ctx, 3*time.Second)
 	defer cancel()
-
 	err := s.q.CreateUser(ctx, params)
 	if err != nil {
 		var pgErr *pgconn.PgError
@@ -30,6 +30,8 @@ func (s *userService) Create(params sqlc.CreateUserParams) error {
 			switch pgErr.ConstraintName {
 			case "users_pkey":
 				return ErrDuplicateUser
+			case "users_email_key":
+				return ErrDuplicateEmail
 			default:
 				return pgErr
 			}
@@ -40,8 +42,8 @@ func (s *userService) Create(params sqlc.CreateUserParams) error {
 	return nil
 }
 
-func (s *userService) GetOne(id string) (*sqlc.User, error) {
-	ctx, cancel := utils.ContextWithTimeout(5 * time.Second)
+func (s *userService) GetOne(ctx context.Context, id string) (*sqlc.User, error) {
+	ctx, cancel := context.WithTimeout(ctx, 3*time.Second)
 	defer cancel()
 	user, err := s.q.GetUser(ctx, id)
 	if err != nil {
@@ -53,10 +55,9 @@ func (s *userService) GetOne(id string) (*sqlc.User, error) {
 	return &user, nil
 }
 
-func (s *userService) Update(params sqlc.UpdateUserParams) error {
-	ctx, cancel := utils.ContextWithTimeout(5 * time.Second)
+func (s *userService) Update(ctx context.Context, params sqlc.UpdateUserParams) error {
+	ctx, cancel := context.WithTimeout(ctx, 3*time.Second)
 	defer cancel()
-
 	rowsAffected, err := s.q.UpdateUser(ctx, params)
 	if err != nil {
 		return err
@@ -67,8 +68,8 @@ func (s *userService) Update(params sqlc.UpdateUserParams) error {
 	return nil
 }
 
-func (s *userService) Delete(id string) error {
-	ctx, cancel := utils.ContextWithTimeout(5 * time.Second)
+func (s *userService) Delete(ctx context.Context, id string) error {
+	ctx, cancel := context.WithTimeout(ctx, 3*time.Second)
 	defer cancel()
 	rowsAffected, err := s.q.DeleteUser(ctx, id)
 	if err != nil {

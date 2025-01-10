@@ -22,9 +22,4 @@ sql:
                     go_type:
                         import: "encoding/json"
                         type: "RawMessage"
-overrides:
-    go:
-        rename:
-            core_user: User
-            core_form: Form
 

@@ -1,1 +1,1 @@
-DROP TABLE IF EXISTS core.form_views CASCADE;
+DROP TABLE IF EXISTS form_views CASCADE;

@@ -26,8 +26,6 @@ func Routes(r *echo.Echo, h *handler.Handler, m *middleware.Middleware) {
 	r.GET("/health", h.HealthCheckHandler)
 
 	// Sub-router
-	v1 := r.Group("/v1", m.Authenticate)
+	// v1 := r.Group("/v1", m.Authenticate)
 
-	v1.POST("/forms", h.CreateFormHandler, m.RequireAuthenticatedUser, m.RequireVerifiedUser)
-	v1.DELETE("/forms/:id", h.DeleteFormHandler, m.RequireAuthenticatedUser, m.RequireVerifiedUser)
 }

@@ -32,11 +32,6 @@ func Pool(dsn string, automigrate bool) (*DB, error) {
 		return nil, err
 	}
 
-	if err := pool.Ping(ctx); err != nil {
-		pool.Close()
-		return nil, err
-	}
-
 	if automigrate {
 		iofsDriver, err := iofs.New(assets.Migrations, "migrations")
 		if err != nil {

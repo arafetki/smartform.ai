@@ -1,16 +1,20 @@
 -- name: GetUser :one
-SELECT * FROM core.users
+SELECT * FROM users
 WHERE id = $1;
 
 -- name: CreateUser :exec
-INSERT INTO core.users (id,is_verified,created_at) VALUES ($1,$2,$3);
+INSERT INTO users (id,first_name,last_name,email,avatar_url,is_email_verified,created_at,updated_at) VALUES ($1,$2,$3,$4,$5,$6,$7,$8);
 
 -- name: UpdateUser :execrows
-UPDATE core.users
+UPDATE users
 SET
-    is_verified = COALESCE(sqlc.narg('is_verified'), is_verified)
+    first_name = COALESCE(sqlc.narg('first_name'), first_name),
+    last_name = COALESCE(sqlc.narg('last_name'), last_name),
+    email = COALESCE(sqlc.narg('email'), email),
+    avatar_url = COALESCE(sqlc.narg('avatar_url'), avatar_url),
+    is_email_verified = COALESCE(sqlc.narg('is_email_verified'), is_email_verified)
 WHERE id = sqlc.arg('id');
 
 -- name: DeleteUser :execrows
-DELETE FROM core.users WHERE id = $1;
+DELETE FROM users WHERE id = $1;
 

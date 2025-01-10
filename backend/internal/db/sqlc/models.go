@@ -12,34 +12,38 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
-type CoreFormResponse struct {
-	ID        uuid.UUID          `json:"id"`
-	FormID    uuid.UUID          `json:"form_id"`
-	Content   json.RawMessage    `json:"content"`
-	CreatedAt pgtype.Timestamptz `json:"created_at"`
-}
-
-type CoreFormView struct {
-	ID        uuid.UUID          `json:"id"`
-	FormID    uuid.UUID          `json:"form_id"`
-	IpAddress netip.Addr         `json:"ip_address"`
-	ViewedAt  pgtype.Timestamptz `json:"viewed_at"`
-}
-
 type Form struct {
 	ID          uuid.UUID          `json:"id"`
 	UserID      string             `json:"user_id"`
 	Title       string             `json:"title"`
 	Description pgtype.Text        `json:"description"`
 	Fields      json.RawMessage    `json:"fields"`
-	Published   bool               `json:"published"`
+	IsPublished bool               `json:"is_published"`
 	CreatedAt   pgtype.Timestamptz `json:"created_at"`
 	UpdatedAt   pgtype.Timestamptz `json:"updated_at"`
 }
 
+type FormResponse struct {
+	ID        uuid.UUID          `json:"id"`
+	FormID    uuid.UUID          `json:"form_id"`
+	Content   json.RawMessage    `json:"content"`
+	CreatedAt pgtype.Timestamptz `json:"created_at"`
+}
+
+type FormView struct {
+	ID        uuid.UUID          `json:"id"`
+	FormID    uuid.UUID          `json:"form_id"`
+	IpAddress netip.Addr         `json:"ip_address"`
+	ViewedAt  pgtype.Timestamptz `json:"viewed_at"`
+}
+
 type User struct {
-	ID         string             `json:"id"`
-	IsVerified bool               `json:"is_verified"`
-	CreatedAt  pgtype.Timestamptz `json:"created_at"`
-	UpdatedAt  pgtype.Timestamptz `json:"updated_at"`
+	ID              string             `json:"id"`
+	FirstName       string             `json:"first_name"`
+	LastName        pgtype.Text        `json:"last_name"`
+	Email           string             `json:"email"`
+	AvatarUrl       pgtype.Text        `json:"avatar_url"`
+	IsEmailVerified bool               `json:"is_email_verified"`
+	CreatedAt       pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt       pgtype.Timestamptz `json:"updated_at"`
 }

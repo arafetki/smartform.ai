@@ -8,11 +8,8 @@ type Wrapper struct {
 	validator *validator.Validate
 }
 
-func (v *Wrapper) Validate(i any) error {
-	if err := v.validator.Struct(i); err != nil {
-		return err
-	}
-	return nil
+func (w *Wrapper) Validate(i any) error {
+	return w.validator.Struct(i)
 }
 
 func New() *Wrapper {

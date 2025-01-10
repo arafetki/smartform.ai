@@ -1,11 +1,13 @@
 package middleware
 
 import (
+	"errors"
 	"net/http"
 	"strings"
 
 	"github.com/arafetki/smartform.ai/backend/internal/db/sqlc"
 	"github.com/arafetki/smartform.ai/backend/internal/jwt"
+	"github.com/arafetki/smartform.ai/backend/internal/service"
 	"github.com/labstack/echo/v4"
 )
 
@@ -27,20 +29,19 @@ func (m *Middleware) Authenticate(next echo.HandlerFunc) echo.HandlerFunc {
 		}
 
 		tokenString := headerParts[1]
-		claims, err := jwt.HMACCheck(tokenString, m.cfg.JWT.Secret)
-		if err != nil {
-			m.logger.Error(err.Error())
-			return echo.NewHTTPError(http.StatusUnauthorized, "Invalid or missing authentication token.")
-		}
-		userId, err := claims.GetSubject()
+		userId, err := jwt.HMACCheck(tokenString, m.cfg.JWT.Secret)
 		if err != nil {
 			m.logger.Error(err.Error())
 			return echo.NewHTTPError(http.StatusUnauthorized, "Invalid or missing authentication token.")
 		}
 
-		user, err := m.service.Users.GetOne(userId)
+		user, err := m.service.Users.GetOne(c.Request().Context(), userId)
 		if err != nil {
-			return echo.NewHTTPError(http.StatusUnauthorized, "Invalid or missing authentication token.")
+			if errors.Is(err, service.ErrUserNotFound) {
+				return echo.NewHTTPError(http.StatusUnauthorized, "Invalid or missing authentication token.")
+			}
+			m.logger.Error(err.Error())
+			return echo.NewHTTPError(http.StatusInternalServerError)
 		}
 		c.Set("user", user)
 		return next(c)
@@ -59,7 +60,7 @@ func (m *Middleware) RequireAuthenticatedUser(next echo.HandlerFunc) echo.Handle
 func (m *Middleware) RequireVerifiedUser(next echo.HandlerFunc) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		user := c.Get("user").(*sqlc.User)
-		if !user.IsVerified {
+		if !user.IsEmailVerified {
 			return echo.NewHTTPError(http.StatusUnauthorized, "You must verify your email to access this resource.")
 		}
 		return next(c)

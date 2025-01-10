@@ -6,7 +6,7 @@ import (
 	"github.com/golang-jwt/jwt/v5"
 )
 
-func HMACCheck(tokenString string, secret string) (jwt.Claims, error) {
+func HMACCheck(tokenString string, secret string) (string, error) {
 	parsedToken, err := jwt.Parse(tokenString, func(t *jwt.Token) (any, error) {
 		if _, ok := t.Method.(*jwt.SigningMethodHMAC); !ok {
 			return nil, fmt.Errorf("unexpected signing algorithm: %s", t.Method.Alg())
@@ -14,8 +14,12 @@ func HMACCheck(tokenString string, secret string) (jwt.Claims, error) {
 		return []byte(secret), nil
 	})
 	if err != nil {
-		return nil, err
+		return "", err
+	}
+	sub, err := parsedToken.Claims.GetSubject()
+	if err != nil {
+		return "", err
 	}
 
-	return parsedToken.Claims, nil
+	return sub, nil
 }
