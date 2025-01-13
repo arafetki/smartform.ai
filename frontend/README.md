@@ -1,1 +1,0 @@
-# Frontend Application - NextJs Framework
